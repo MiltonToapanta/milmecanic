@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Save, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -8,13 +7,12 @@ import { Input } from '../../../components/ui/input';
 import {
   categoryLabels,
   diagnosticCategories,
-  diagnosticItemSchema,
   diagnosticItemStatuses,
   diagnosticSeverities,
   severityLabels,
   statusLabels
 } from '../schemas/service-diagnostic.schema';
-import type { EditableDiagnosticItem } from '../types/service-diagnostic.types';
+import type { DiagnosticCategory, DiagnosticItemStatus, DiagnosticSeverity, EditableDiagnosticItem } from '../types/service-diagnostic.types';
 
 interface DiagnosticItemFormProps {
   item?: EditableDiagnosticItem;
@@ -22,39 +20,78 @@ interface DiagnosticItemFormProps {
   onCancel: () => void;
 }
 
-function createEmptyItem(): EditableDiagnosticItem {
+type DiagnosticItemFormValues = Omit<EditableDiagnosticItem, 'category' | 'status' | 'severity'> & {
+  category: DiagnosticCategory | '';
+  status: DiagnosticItemStatus | '';
+  severity?: DiagnosticSeverity | '';
+};
+
+function createEmptyItem(): DiagnosticItemFormValues {
   return {
     localId: crypto.randomUUID(),
-    category: 'ENGINE',
+    category: '',
     itemName: '',
-    status: 'GOOD',
+    status: '',
     observation: '',
-    severity: undefined
+    severity: ''
+  };
+}
+
+function toFormValues(item?: EditableDiagnosticItem): DiagnosticItemFormValues {
+  if (!item) return createEmptyItem();
+  return {
+    ...item,
+    severity: item.severity ?? ''
   };
 }
 
 export function DiagnosticItemForm({ item, onSave, onCancel }: DiagnosticItemFormProps) {
-  const form = useForm<EditableDiagnosticItem>({
-    resolver: zodResolver(diagnosticItemSchema),
-    defaultValues: item ?? createEmptyItem()
+  const form = useForm<DiagnosticItemFormValues>({
+    defaultValues: toFormValues(item)
   });
   const status = form.watch('status');
 
   useEffect(() => {
-    form.reset(item ?? createEmptyItem());
+    form.reset(toFormValues(item));
   }, [form, item]);
 
   useEffect(() => {
-    if (status === 'GOOD' || status === 'NOT_CHECKED') form.setValue('severity', undefined);
+    if (status === 'GOOD' || status === 'NOT_CHECKED') form.setValue('severity', '');
   }, [form, status]);
 
   const submit = form.handleSubmit((values) => {
-    onSave({
-      ...values,
+    form.clearErrors();
+    if (!values.category) {
+      form.setError('category', { message: 'Seleccione una categoría' });
+      return;
+    }
+    if (!values.itemName.trim()) {
+      form.setError('itemName', { message: 'Ingrese el elemento revisado' });
+      return;
+    }
+    if (!values.status) {
+      form.setError('status', { message: 'Seleccione un estado' });
+      return;
+    }
+    if (values.status === 'BAD' && !values.observation?.trim()) {
+      form.setError('observation', { message: 'La observación es obligatoria cuando el estado es Malo' });
+      return;
+    }
+    if (values.status === 'BAD' && !values.severity) {
+      form.setError('severity', { message: 'La severidad es obligatoria cuando el estado es Malo' });
+      return;
+    }
+
+    const savedItem: EditableDiagnosticItem = {
+      id: values.id,
+      localId: values.localId,
+      category: values.category,
+      status: values.status,
       itemName: values.itemName.trim(),
       observation: values.observation?.trim() || undefined,
       severity: values.severity || undefined
-    });
+    };
+    onSave(savedItem);
   });
 
   return (
@@ -65,10 +102,11 @@ export function DiagnosticItemForm({ item, onSave, onCancel }: DiagnosticItemFor
           Registre una pieza o sistema específico. Ejemplo: Pastillas delanteras, aceite de motor, batería, luces bajas.
         </p>
       </div>
-      <form className="grid gap-4 lg:grid-cols-5" onSubmit={(event) => void submit(event)}>
+      <div className="grid gap-4 lg:grid-cols-5">
         <input type="hidden" {...form.register('localId')} />
         <FormField label="Categoría" error={form.formState.errors.category?.message}>
           <select className="mm-select" {...form.register('category')}>
+            <option value="">Seleccione categoría</option>
             {diagnosticCategories.map((category) => (
               <option key={category} value={category}>{categoryLabels[category]}</option>
             ))}
@@ -79,6 +117,7 @@ export function DiagnosticItemForm({ item, onSave, onCancel }: DiagnosticItemFor
         </FormField>
         <FormField label="Estado" error={form.formState.errors.status?.message}>
           <select className="mm-select" {...form.register('status')}>
+            <option value="">Seleccione estado</option>
             {diagnosticItemStatuses.map((itemStatus) => (
               <option key={itemStatus} value={itemStatus}>{statusLabels[itemStatus]}</option>
             ))}
@@ -93,7 +132,7 @@ export function DiagnosticItemForm({ item, onSave, onCancel }: DiagnosticItemFor
           </select>
         </FormField>
         <div className="flex items-end gap-2">
-          <Button type="submit" className="w-full"><Save className="h-4 w-4" />Guardar ítem</Button>
+          <Button type="button" className="w-full" onClick={() => void submit()}><Save className="h-4 w-4" />Guardar ítem</Button>
           <Button type="button" variant="secondary" onClick={onCancel}><X className="h-4 w-4" /></Button>
         </div>
         <div className="lg:col-span-5">
@@ -101,7 +140,7 @@ export function DiagnosticItemForm({ item, onSave, onCancel }: DiagnosticItemFor
             <textarea className="mm-textarea min-h-24" {...form.register('observation')} placeholder="Ej. Material de fricción bajo el mínimo recomendado." />
           </FormField>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

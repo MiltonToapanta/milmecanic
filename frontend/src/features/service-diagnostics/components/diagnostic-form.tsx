@@ -8,7 +8,6 @@ import { FormField } from '../../../components/forms/FormField';
 import { Button } from '../../../components/ui/button';
 import { serviceDiagnosticGeneralSchema, serviceDiagnosticSchema, type ServiceDiagnosticFormValues } from '../schemas/service-diagnostic.schema';
 import type { EditableDiagnosticItem, ServiceDiagnostic, ServiceDiagnosticItem } from '../types/service-diagnostic.types';
-import { completeDiagnosticPreset, materializePreset, safetyDiagnosticPreset } from '../utils/diagnostic-presets';
 import { DiagnosticItemForm } from './diagnostic-item-form';
 import { DiagnosticItemsTable } from './diagnostic-items-table';
 import { DiagnosticSummary } from './diagnostic-summary';
@@ -96,14 +95,6 @@ export function DiagnosticForm({ diagnostic, isSubmitting, onSubmit }: Diagnosti
     setItemFormOpen(false);
   };
 
-  const loadPreset = (presetItems: EditableDiagnosticItem[]) => {
-    setItems((current) => {
-      const existingKeys = new Set(current.map((item) => `${item.category}:${item.itemName.trim().toLocaleLowerCase()}`));
-      const newItems = presetItems.filter((item) => !existingKeys.has(`${item.category}:${item.itemName.trim().toLocaleLowerCase()}`));
-      return [...current, ...newItems];
-    });
-  };
-
   const confirmDeleteItem = () => {
     if (!deleteItem) return;
     setItems((current) => current.filter((item) => item.localId !== deleteItem.localId));
@@ -126,7 +117,7 @@ export function DiagnosticForm({ diagnostic, isSubmitting, onSubmit }: Diagnosti
   });
 
   return (
-    <form className="space-y-6" onSubmit={(event) => void submit(event)}>
+    <div className="space-y-6">
       <HelpPanel
         title="Cómo llenar el diagnóstico"
         items={[
@@ -163,15 +154,9 @@ export function DiagnosticForm({ diagnostic, isSubmitting, onSubmit }: Diagnosti
             {itemsError ? <p className="mt-2 text-sm font-medium text-red-600">{itemsError}</p> : null}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="secondary" onClick={() => loadPreset(materializePreset(safetyDiagnosticPreset))}>
-              Cargar seguridad básica
-            </Button>
-            <Button type="button" variant="secondary" onClick={() => loadPreset(materializePreset(completeDiagnosticPreset))}>
-              Cargar diagnóstico completo
-            </Button>
             <Button type="button" onClick={() => { setEditingItem(undefined); setItemFormOpen(true); }}>
               <Plus className="h-4 w-4" />
-              Agregar ítem
+              Crear ítem manual
             </Button>
           </div>
         </div>
@@ -200,7 +185,7 @@ export function DiagnosticForm({ diagnostic, isSubmitting, onSubmit }: Diagnosti
       {form.formState.errors.root?.message ? <p className="text-sm font-medium text-red-600">{form.formState.errors.root.message}</p> : null}
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="button" disabled={isSubmitting} onClick={() => void submit()}>
           <Save className="h-4 w-4" />
           {isSubmitting ? 'Guardando...' : 'Guardar diagnóstico'}
         </Button>
@@ -217,6 +202,6 @@ export function DiagnosticForm({ diagnostic, isSubmitting, onSubmit }: Diagnosti
           </div>
         </div>
       ) : null}
-    </form>
+    </div>
   );
 }
