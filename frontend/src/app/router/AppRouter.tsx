@@ -10,6 +10,7 @@ import { AccessDeniedPage } from '../../features/errors/pages/AccessDeniedPage';
 import { NotFoundPage } from '../../features/errors/pages/NotFoundPage';
 import { ProfilePage } from '../../features/profile/pages/ProfilePage';
 import { RolesPage } from '../../features/roles/pages/RolesPage';
+import { CreateDiagnosticPage, DiagnosticDetailPage, EditDiagnosticPage } from '../../features/service-diagnostics';
 import { CreateServiceOrderPage, EditServiceOrderPage, ServiceOrderDetailPage, ServiceOrdersPage } from '../../features/service-orders';
 import { SettingsPage } from '../../features/settings/pages/SettingsPage';
 import { UsersPage } from '../../features/users/pages/UsersPage';
@@ -58,6 +59,15 @@ export function AppRouter() {
           <Route element={<ProtectedRoute permission="service-orders.read" />}>
             <Route path="/service-orders" element={<ServiceOrdersPage />} />
             <Route path="/service-orders/:id" element={<ServiceOrderDetailPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="service-diagnostics.read" />}>
+            <Route path="/service-orders/:serviceOrderId/diagnostic" element={<DiagnosticDetailPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="service-diagnostics.create" />}>
+            <Route path="/service-orders/:serviceOrderId/diagnostic/new" element={<CreateDiagnosticPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="service-diagnostics.update" />}>
+            <Route path="/service-orders/:serviceOrderId/diagnostic/edit" element={<EditDiagnosticPage />} />
           </Route>
           <Route element={<ProtectedRoute permission="service-orders.create" />}>
             <Route path="/service-orders/new" element={<CreateServiceOrderPage />} />

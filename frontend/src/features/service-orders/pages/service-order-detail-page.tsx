@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { Camera, Edit, Printer, RefreshCcw, Trash2, Upload } from 'lucide-react';
+import { Camera, CheckCircle2, ClipboardCheck, Edit, Printer, RefreshCcw, ShieldAlert, Trash2, Upload } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '../../../components/common/ConfirmDialog';
@@ -12,6 +12,10 @@ import { fuelLevelOptions } from '../../../config/catalogs';
 import { cn } from '../../../lib/utils';
 import { apiClient } from '../../../services/api-client';
 import { useAuthStore } from '../../auth/store/auth.store';
+import { DiagnosticStatusBadge } from '../../service-diagnostics/components/diagnostic-status-badge';
+import { useServiceDiagnosticByOrder } from '../../service-diagnostics/hooks/use-service-diagnostics';
+import type { ServiceDiagnostic } from '../../service-diagnostics/types/service-diagnostic.types';
+import { getDiagnosticSummary } from '../../service-diagnostics/utils/diagnostic-summary';
 import { ServiceOrderStatusBadge } from '../components/service-order-status-badge';
 import { ServiceOrderStatusDialog } from '../components/service-order-status-dialog';
 import { useChangeServiceOrderStatus, useDeleteServiceOrder, useServiceOrder, useUploadServiceOrderPhoto } from '../hooks/use-service-orders';
@@ -110,6 +114,7 @@ export function ServiceOrderDetailPage() {
   const navigate = useNavigate();
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const orderQuery = useServiceOrder(id ?? '');
+  const diagnosticQuery = useServiceDiagnosticByOrder(id ?? '');
   const changeStatusMutation = useChangeServiceOrderStatus();
   const deleteMutation = useDeleteServiceOrder();
   const uploadPhotoMutation = useUploadServiceOrderPhoto();
@@ -167,6 +172,60 @@ export function ServiceOrderDetailPage() {
       />
 
       <ProgressLine order={order} />
+
+      <section className="rounded-lg border border-border bg-card p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-base font-semibold">
+              <ClipboardCheck className="h-5 w-5 text-primary" />
+              Diagnóstico técnico
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Registre la revisión del mecánico por categorías: motor, frenos, luces, neumáticos y más.
+            </p>
+          </div>
+          {diagnosticQuery.data ? (
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary">
+                <Link to={`/service-orders/${order.id}/diagnostic`}>Ver diagnóstico</Link>
+              </Button>
+              {!diagnosticQuery.data.completedAt && hasPermission('service-diagnostics.update') ? (
+                <Button variant="secondary">
+                  <Link to={`/service-orders/${order.id}/diagnostic/edit`} className="flex items-center gap-2">
+                    <Edit className="h-4 w-4" />
+                    Editar
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+          ) : hasPermission('service-diagnostics.create') && canModify ? (
+            <Button>
+              <Link to={`/service-orders/${order.id}/diagnostic/new`} className="flex items-center gap-2">
+                <ClipboardCheck className="h-4 w-4" />
+                Crear diagnóstico
+              </Link>
+            </Button>
+          ) : null}
+        </div>
+
+        {diagnosticQuery.isLoading ? (
+          <div className="mt-4 rounded-lg border border-border bg-background p-4 text-sm text-muted-foreground">Consultando diagnóstico...</div>
+        ) : diagnosticQuery.data ? (
+          <DiagnosticOrderSummary diagnostic={diagnosticQuery.data} />
+        ) : (
+          <div className="mt-4 rounded-lg border border-dashed border-border bg-background p-5">
+            <div className="flex gap-3">
+              <ShieldAlert className="mt-0.5 h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="font-semibold">Aún no se ha registrado un diagnóstico técnico.</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Cuando la orden esté en etapa de diagnóstico, registre los ítems revisados y las fallas encontradas.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <DetailItem label="Estado" value={<ServiceOrderStatusBadge status={order.status} />} />
@@ -330,5 +389,21 @@ function TextBlock({ title, value }: { title: string; value?: string | null }) {
       <h2 className="text-base font-semibold">{title}</h2>
       <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted-foreground">{value || 'Sin registrar'}</p>
     </section>
+  );
+}
+
+function DiagnosticOrderSummary({ diagnostic }: { diagnostic: ServiceDiagnostic }) {
+  const summary = getDiagnosticSummary(diagnostic.items);
+  return (
+    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <DetailItem label="Estado" value={<DiagnosticStatusBadge diagnostic={diagnostic} />} />
+      <DetailItem label="Ítems revisados" value={summary.total} />
+      <DetailItem label="Fallas detectadas" value={<span className="inline-flex items-center gap-1"><ShieldAlert className="h-4 w-4 text-red-600" />{summary.bad}</span>} />
+      <DetailItem label="Fecha de creación" value={formatDateTime(diagnostic.createdAt)} />
+      <DetailItem
+        label="Finalización"
+        value={diagnostic.completedAt ? <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-4 w-4 text-emerald-600" />{formatDateTime(diagnostic.completedAt)}</span> : 'Pendiente'}
+      />
+    </div>
   );
 }
