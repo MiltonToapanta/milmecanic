@@ -1,5 +1,6 @@
 import type { CustomerType, IdentificationType } from '../features/customers/types/customer.types';
 import type { AppointmentStatus } from '../features/appointments/types/appointment.types';
+import type { FuelLevel, ServiceOrderStatus } from '../features/service-orders/types/service-order.types';
 import type { FuelType, TransmissionType } from '../features/vehicles/types/vehicle.types';
 
 export interface CatalogOption<T extends string = string> {
@@ -68,4 +69,24 @@ export const appointmentStatusOptions: CatalogOption<AppointmentStatus>[] = [
   { value: 'COMPLETED', label: 'Completada', description: 'La cita terminó.' },
   { value: 'CANCELLED', label: 'Cancelada', description: 'La cita fue cancelada con motivo.' },
   { value: 'NO_SHOW', label: 'No asistió', description: 'El cliente no llegó a la cita.' }
+];
+
+export const serviceOrderStatusOptions: CatalogOption<ServiceOrderStatus>[] = [
+  { value: 'RECEIVED', label: 'Recibido', description: 'Vehículo recibido y orden creada.' },
+  { value: 'DIAGNOSIS', label: 'Diagnóstico', description: 'El equipo revisa el vehículo y registra hallazgos.' },
+  { value: 'WAITING_APPROVAL', label: 'Esperando aprobación', description: 'La orden espera autorización del cliente.' },
+  { value: 'APPROVED', label: 'Aprobado', description: 'El cliente autorizó continuar con el trabajo.' },
+  { value: 'IN_REPAIR', label: 'En reparación', description: 'El vehículo está siendo reparado.' },
+  { value: 'QUALITY_CONTROL', label: 'Control de calidad', description: 'Trabajo en revisión final antes de entrega.' },
+  { value: 'READY_FOR_DELIVERY', label: 'Listo para entregar', description: 'El vehículo está listo para entregar al cliente.' },
+  { value: 'DELIVERED', label: 'Entregado', description: 'El vehículo fue entregado.' },
+  { value: 'CANCELLED', label: 'Cancelado', description: 'La orden fue cancelada con motivo.' }
+];
+
+export const fuelLevelOptions: CatalogOption<FuelLevel>[] = [
+  { value: 'EMPTY', label: 'Vacío' },
+  { value: 'QUARTER', label: '1/4' },
+  { value: 'HALF', label: '1/2' },
+  { value: 'THREE_QUARTERS', label: '3/4' },
+  { value: 'FULL', label: 'Lleno' }
 ];

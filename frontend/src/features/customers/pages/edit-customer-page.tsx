@@ -7,6 +7,7 @@ import { ErrorState } from '../../../components/feedback/ErrorState';
 import { LoadingState } from '../../../components/feedback/LoadingState';
 import { CustomerForm } from '../components/customer-form';
 import { CustomerAppointmentsSection } from '../../appointments/components/customer-appointments-section';
+import { CustomerServiceOrdersSection } from '../../service-orders/components/customer-service-orders-section';
 import { CustomerVehiclesSection } from '../../vehicles/components/customer-vehicles-section';
 import {
   useActivateCustomer,
@@ -68,6 +69,7 @@ export function EditCustomerPage() {
         isSubmitting={updateMutation.isPending || activateMutation.isPending || deactivateMutation.isPending}
         onSubmit={handleSubmit}
       />
+      <CustomerServiceOrdersSection customerId={customerQuery.data.id} />
       <CustomerAppointmentsSection customerId={customerQuery.data.id} />
       <CustomerVehiclesSection customerId={customerQuery.data.id} />
     </div>

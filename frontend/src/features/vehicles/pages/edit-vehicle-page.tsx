@@ -6,6 +6,7 @@ import { PageHeader } from '../../../components/common/PageHeader';
 import { ErrorState } from '../../../components/feedback/ErrorState';
 import { LoadingState } from '../../../components/feedback/LoadingState';
 import { VehicleAppointmentsSection } from '../../appointments/components/vehicle-appointments-section';
+import { VehicleServiceOrdersSection } from '../../service-orders/components/vehicle-service-orders-section';
 import { VehicleForm } from '../components/vehicle-form';
 import { useActivateVehicle, useDeactivateVehicle, useUpdateVehicle, useVehicle } from '../hooks/use-vehicles';
 import type { VehiclePayload } from '../types/vehicle.types';
@@ -62,6 +63,7 @@ export function EditVehiclePage() {
         isSubmitting={updateMutation.isPending || activateMutation.isPending || deactivateMutation.isPending}
         onSubmit={handleSubmit}
       />
+      <VehicleServiceOrdersSection vehicleId={vehicleQuery.data.id} customerId={vehicleQuery.data.customerId} />
       <VehicleAppointmentsSection vehicleId={vehicleQuery.data.id} customerId={vehicleQuery.data.customerId} />
     </div>
   );

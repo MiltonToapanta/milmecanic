@@ -10,6 +10,7 @@ import { AccessDeniedPage } from '../../features/errors/pages/AccessDeniedPage';
 import { NotFoundPage } from '../../features/errors/pages/NotFoundPage';
 import { ProfilePage } from '../../features/profile/pages/ProfilePage';
 import { RolesPage } from '../../features/roles/pages/RolesPage';
+import { CreateServiceOrderPage, EditServiceOrderPage, ServiceOrderDetailPage, ServiceOrdersPage } from '../../features/service-orders';
 import { SettingsPage } from '../../features/settings/pages/SettingsPage';
 import { UsersPage } from '../../features/users/pages/UsersPage';
 import { CreateVehiclePage, EditVehiclePage, VehiclesPage } from '../../features/vehicles';
@@ -53,6 +54,16 @@ export function AppRouter() {
           </Route>
           <Route element={<ProtectedRoute permission="appointments.update" />}>
             <Route path="/appointments/:id/edit" element={<EditAppointmentPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="service-orders.read" />}>
+            <Route path="/service-orders" element={<ServiceOrdersPage />} />
+            <Route path="/service-orders/:id" element={<ServiceOrderDetailPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="service-orders.create" />}>
+            <Route path="/service-orders/new" element={<CreateServiceOrderPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="service-orders.update" />}>
+            <Route path="/service-orders/:id/edit" element={<EditServiceOrderPage />} />
           </Route>
           <Route element={<ProtectedRoute permission="roles.read" />}>
             <Route path="/roles" element={<RolesPage />} />

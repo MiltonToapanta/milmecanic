@@ -1,4 +1,4 @@
-import { BarChart3, CalendarDays, Car, ClipboardList, Gauge, Settings, ShieldCheck, UserRound, Users } from 'lucide-react';
+import { BarChart3, CalendarDays, Car, ClipboardList, FileText, Gauge, Settings, ShieldCheck, UserRound, Users } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { PermissionGuard } from '../common/PermissionGuard';
@@ -9,6 +9,7 @@ const items = [
   { to: '/customers', label: 'Clientes', icon: UserRound, permission: 'customers.read' },
   { to: '/vehicles', label: 'Vehículos', icon: Car, permission: 'vehicles.read' },
   { to: '/appointments', label: 'Citas', icon: CalendarDays, permission: 'appointments.read' },
+  { to: '/service-orders', label: 'Órdenes de servicio', icon: FileText, permission: 'service-orders.read' },
   { to: '/roles', label: 'Roles y permisos', icon: ShieldCheck, permission: 'roles.read' },
   { to: '/settings', label: 'Configuración', icon: Settings, permission: 'settings.read' },
   { to: '/audit', label: 'Auditoría', icon: ClipboardList, permission: 'audit.read' }
