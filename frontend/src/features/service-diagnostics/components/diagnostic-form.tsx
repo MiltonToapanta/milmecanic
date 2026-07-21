@@ -6,7 +6,7 @@ import { ConfirmDialog } from '../../../components/common/ConfirmDialog';
 import { HelpPanel } from '../../../components/common/HelpPanel';
 import { FormField } from '../../../components/forms/FormField';
 import { Button } from '../../../components/ui/button';
-import { serviceDiagnosticSchema, type ServiceDiagnosticFormValues } from '../schemas/service-diagnostic.schema';
+import { serviceDiagnosticGeneralSchema, serviceDiagnosticSchema, type ServiceDiagnosticFormValues } from '../schemas/service-diagnostic.schema';
 import type { EditableDiagnosticItem, ServiceDiagnostic, ServiceDiagnosticItem } from '../types/service-diagnostic.types';
 import { DiagnosticItemForm } from './diagnostic-item-form';
 import { DiagnosticItemsTable } from './diagnostic-items-table';
@@ -64,7 +64,7 @@ export function DiagnosticForm({ diagnostic, isSubmitting, onSubmit }: Diagnosti
   const [itemFormOpen, setItemFormOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState<EditableDiagnosticItem | null>(null);
   const form = useForm<Omit<ServiceDiagnosticFormValues, 'items'>>({
-    resolver: zodResolver(serviceDiagnosticSchema.omit({ items: true })),
+    resolver: zodResolver(serviceDiagnosticGeneralSchema),
     defaultValues: {
       generalObservation: diagnostic?.generalObservation ?? '',
       recommendation: diagnostic?.recommendation ?? ''

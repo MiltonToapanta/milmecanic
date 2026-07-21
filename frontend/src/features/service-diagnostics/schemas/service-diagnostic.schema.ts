@@ -70,10 +70,14 @@ export const diagnosticItemSchema = z
     }
   });
 
+export const serviceDiagnosticGeneralSchema = z.object({
+  generalObservation: z.string().trim().optional(),
+  recommendation: z.string().trim().optional()
+});
+
 export const serviceDiagnosticSchema = z
   .object({
-    generalObservation: z.string().trim().optional(),
-    recommendation: z.string().trim().optional(),
+    ...serviceDiagnosticGeneralSchema.shape,
     items: z.array(diagnosticItemSchema).min(1, 'Agregue al menos un ítem de diagnóstico')
   })
   .superRefine((value, ctx) => {
