@@ -77,14 +77,10 @@ export class ServiceDiagnosticsService {
 
   async findByServiceOrderId(
     serviceOrderId: string,
-  ): Promise<ServiceDiagnosticResponse> {
+  ): Promise<ServiceDiagnosticResponse | null> {
     const diagnostic =
       await this.serviceDiagnosticsRepository.findActiveByServiceOrderId(
         serviceOrderId,
-      );
-    if (!diagnostic)
-      throw new NotFoundException(
-        "La orden no tiene un diagnóstico técnico activo",
       );
     return diagnostic;
   }

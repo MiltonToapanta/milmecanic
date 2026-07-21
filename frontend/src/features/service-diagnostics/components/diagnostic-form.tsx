@@ -8,6 +8,7 @@ import { FormField } from '../../../components/forms/FormField';
 import { Button } from '../../../components/ui/button';
 import { serviceDiagnosticGeneralSchema, serviceDiagnosticSchema, type ServiceDiagnosticFormValues } from '../schemas/service-diagnostic.schema';
 import type { EditableDiagnosticItem, ServiceDiagnostic, ServiceDiagnosticItem } from '../types/service-diagnostic.types';
+import { completeDiagnosticPreset, materializePreset, safetyDiagnosticPreset } from '../utils/diagnostic-presets';
 import { DiagnosticItemForm } from './diagnostic-item-form';
 import { DiagnosticItemsTable } from './diagnostic-items-table';
 import { DiagnosticSummary } from './diagnostic-summary';
@@ -95,6 +96,14 @@ export function DiagnosticForm({ diagnostic, isSubmitting, onSubmit }: Diagnosti
     setItemFormOpen(false);
   };
 
+  const loadPreset = (presetItems: EditableDiagnosticItem[]) => {
+    setItems((current) => {
+      const existingKeys = new Set(current.map((item) => `${item.category}:${item.itemName.trim().toLocaleLowerCase()}`));
+      const newItems = presetItems.filter((item) => !existingKeys.has(`${item.category}:${item.itemName.trim().toLocaleLowerCase()}`));
+      return [...current, ...newItems];
+    });
+  };
+
   const confirmDeleteItem = () => {
     if (!deleteItem) return;
     setItems((current) => current.filter((item) => item.localId !== deleteItem.localId));
@@ -153,10 +162,18 @@ export function DiagnosticForm({ diagnostic, isSubmitting, onSubmit }: Diagnosti
             <p className="mt-1 text-sm text-muted-foreground">Agregue todo lo revisado. Mientras más claro, más fácil aprobar el siguiente paso.</p>
             {itemsError ? <p className="mt-2 text-sm font-medium text-red-600">{itemsError}</p> : null}
           </div>
-          <Button type="button" onClick={() => { setEditingItem(undefined); setItemFormOpen(true); }}>
-            <Plus className="h-4 w-4" />
-            Agregar ítem
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="secondary" onClick={() => loadPreset(materializePreset(safetyDiagnosticPreset))}>
+              Cargar seguridad básica
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => loadPreset(materializePreset(completeDiagnosticPreset))}>
+              Cargar diagnóstico completo
+            </Button>
+            <Button type="button" onClick={() => { setEditingItem(undefined); setItemFormOpen(true); }}>
+              <Plus className="h-4 w-4" />
+              Agregar ítem
+            </Button>
+          </div>
         </div>
 
         <div className="mt-5">
