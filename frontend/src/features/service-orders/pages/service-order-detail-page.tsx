@@ -308,14 +308,105 @@ export function ServiceOrderDetailPage() {
       </section>
 
       <section className="rounded-lg border border-border bg-card p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="print-hide flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-base font-semibold">Documento de orden para firma</h2>
             <p className="mt-1 text-sm text-muted-foreground">Vista imprimible para que firmen cliente y taller al recibir el vehículo.</p>
           </div>
           <Button variant="secondary" onClick={() => window.print()}><Printer className="h-4 w-4" />Imprimir</Button>
         </div>
-        <div className="mt-6 rounded-lg border border-border bg-background p-5 text-sm">
+        <div className="print-document mt-6 overflow-hidden rounded-xl border border-border bg-background text-sm shadow-sm">
+          <div className="bg-slate-950 px-6 py-5 text-white">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-xl font-black text-primary-foreground">MM</div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-300">MilMecanic Taller</p>
+                  <h3 className="mt-1 text-2xl font-bold">Orden de servicio</h3>
+                  <p className="mt-1 text-sm text-slate-300">Gestión inteligente para talleres</p>
+                </div>
+              </div>
+              <div className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-left sm:text-right">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-300">Número</p>
+                <p className="mt-1 text-2xl font-bold">{order.orderNumber}</p>
+                <p className="mt-1 text-xs text-slate-300">{formatDateTime(order.createdAt)}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-5 p-6">
+            <div className="grid gap-4 md:grid-cols-3">
+              <PrintInfoCard title="Estado" value={<ServiceOrderStatusBadge status={order.status} />} />
+              <PrintInfoCard title="Asesor" value={order.assignedAdvisor?.displayName ?? 'Sin asesor'} />
+              <PrintInfoCard title="Mecánico" value={order.assignedMechanic?.displayName ?? 'Sin mecánico'} />
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="print-card rounded-xl border border-slate-200 bg-white p-4">
+                <h4 className="border-b border-slate-200 pb-2 text-sm font-bold uppercase tracking-wide text-slate-700">Datos del cliente</h4>
+                <div className="mt-3 grid gap-2 text-sm">
+                  <PrintLine label="Cliente" value={order.customer.displayName} />
+                  <PrintLine label="Identificación" value={order.customer.identification} />
+                  <PrintLine label="Firma sugerida" value={order.customerSignatureName || order.customer.displayName} />
+                </div>
+              </div>
+
+              <div className="print-card rounded-xl border border-slate-200 bg-white p-4">
+                <h4 className="border-b border-slate-200 pb-2 text-sm font-bold uppercase tracking-wide text-slate-700">Datos del vehículo</h4>
+                <div className="mt-3 grid gap-2 text-sm">
+                  <PrintLine label="Placa" value={order.vehicle.plate} />
+                  <PrintLine label="Vehículo" value={order.vehicle.displayName} />
+                  <PrintLine label="Kilometraje" value={`${order.reportedMileage.toLocaleString('es-EC')} km`} />
+                  <PrintLine label="Combustible" value={fuelLevelOptions.find((option) => option.value === order.fuelLevel)?.label ?? order.fuelLevel} />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <PrintTextCard title="Solicitud del cliente" value={order.customerRequest} />
+              <PrintTextCard title="Diagnóstico inicial" value={order.initialDiagnosis} />
+            </div>
+
+            <div className="print-card rounded-xl border border-slate-200 bg-white p-4">
+              <h4 className="text-sm font-bold uppercase tracking-wide text-slate-700">Condición de recepción</h4>
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                <PrintMiniText title="Exterior" value={order.exteriorCondition} />
+                <PrintMiniText title="Interior" value={order.interiorCondition} />
+                <PrintMiniText title="Accesorios" value={order.receivedAccessories} />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <PrintInfoCard title="Entrega estimada" value={formatDateTime(order.estimatedDeliveryAt)} />
+              <PrintInfoCard title="Inicio de trabajo" value={formatDateTime(order.startedAt)} />
+              <PrintInfoCard title="Finalización" value={formatDateTime(order.completedAt)} />
+            </div>
+
+            <div className="print-card rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs leading-5 text-slate-600">
+              <h4 className="text-sm font-bold uppercase tracking-wide text-slate-700">Constancia de recepción</h4>
+              <p className="mt-2">
+                El cliente autoriza la recepción del vehículo para inspección y diagnóstico inicial. Cualquier reparación, repuesto o trabajo adicional
+                deberá ser informado y aprobado antes de su ejecución. El taller registra las condiciones visibles indicadas en esta orden.
+              </p>
+            </div>
+
+            <div className="grid gap-10 pt-10 md:grid-cols-2">
+              <div className="border-t-2 border-slate-800 pt-3 text-center">
+                <p className="font-bold text-slate-900">{order.customerSignatureName || order.customer.displayName}</p>
+                <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">Firma cliente</p>
+              </div>
+              <div className="border-t-2 border-slate-800 pt-3 text-center">
+                <p className="font-bold text-slate-900">{order.workshopSignatureName || order.assignedAdvisor?.displayName || 'MilMecanic Taller'}</p>
+                <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">Firma taller</p>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-200 pt-3 text-center text-[11px] text-slate-500">
+              Documento generado por MilMecanic ERP · {formatDateTime(new Date().toISOString())}
+            </div>
+          </div>
+        </div>
+        <div className="hidden">
           <div className="flex flex-col gap-2 border-b border-border pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h3 className="text-xl font-semibold">Orden de servicio {order.orderNumber}</h3>
@@ -389,6 +480,42 @@ function TextBlock({ title, value }: { title: string; value?: string | null }) {
       <h2 className="text-base font-semibold">{title}</h2>
       <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted-foreground">{value || 'Sin registrar'}</p>
     </section>
+  );
+}
+
+function PrintInfoCard({ title, value }: { title: string; value: React.ReactNode }) {
+  return (
+    <div className="print-card rounded-xl border border-slate-200 bg-white p-4">
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{title}</p>
+      <div className="mt-2 text-sm font-semibold text-slate-900">{value || 'Sin registrar'}</div>
+    </div>
+  );
+}
+
+function PrintLine({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="flex justify-between gap-4 border-b border-slate-100 pb-1">
+      <span className="font-medium text-slate-500">{label}</span>
+      <span className="text-right font-semibold text-slate-900">{value || 'Sin registrar'}</span>
+    </div>
+  );
+}
+
+function PrintTextCard({ title, value }: { title: string; value?: string | null }) {
+  return (
+    <div className="print-card rounded-xl border border-slate-200 bg-white p-4">
+      <h4 className="text-sm font-bold uppercase tracking-wide text-slate-700">{title}</h4>
+      <p className="mt-3 min-h-20 whitespace-pre-line rounded-lg bg-slate-50 p-3 text-sm leading-6 text-slate-700">{value || 'Sin registrar'}</p>
+    </div>
+  );
+}
+
+function PrintMiniText({ title, value }: { title: string; value?: string | null }) {
+  return (
+    <div className="rounded-lg bg-slate-50 p-3">
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{title}</p>
+      <p className="mt-2 whitespace-pre-line text-sm leading-5 text-slate-700">{value || 'Sin registrar'}</p>
+    </div>
   );
 }
 
