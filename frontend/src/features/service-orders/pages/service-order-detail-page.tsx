@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { Camera, CheckCircle2, ClipboardCheck, Edit, Printer, RefreshCcw, ShieldAlert, Trash2, Upload } from 'lucide-react';
+import { CheckCircle2, ClipboardCheck, Edit, FileText, Image as ImageIcon, Paperclip, Printer, RefreshCcw, ShieldAlert, Trash2, Upload } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '../../../components/common/ConfirmDialog';
@@ -257,13 +257,16 @@ export function ServiceOrderDetailPage() {
       <section className="rounded-lg border border-border bg-card p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold">Fotos de recepción</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Suba fotos del estado del vehículo al ingresar al taller.</p>
+            <h2 className="flex items-center gap-2 text-base font-semibold">
+              <Paperclip className="h-5 w-5 text-primary" />
+              Adjuntos de recepción
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">Agregue fotos como evidencia adjunta del estado del vehículo al ingresar al taller.</p>
           </div>
           {hasPermission('service-orders.update') && canModify ? (
             <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90">
               <Upload className="h-4 w-4" />
-              Subir foto
+              Agregar adjunto
               <input
                 className="hidden"
                 type="file"
@@ -286,21 +289,26 @@ export function ServiceOrderDetailPage() {
             className="mt-4 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm shadow-sm outline-none focus:ring-2 focus:ring-primary/30"
             value={photoCaption}
             onChange={(event) => setPhotoCaption(event.target.value)}
-            placeholder="Descripción opcional antes de subir: frente, lateral derecho, tablero..."
+            placeholder="Descripción del adjunto: frente, lateral derecho, tablero, rayón, golpe..."
           />
         ) : null}
         {order.photos.length === 0 ? (
           <div className="mt-4 rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            <Camera className="mx-auto mb-2 h-7 w-7" />
-            Aún no hay fotos en esta orden.
+            <Paperclip className="mx-auto mb-2 h-7 w-7" />
+            Aún no hay adjuntos en esta orden.
           </div>
         ) : (
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {order.photos.map((photo) => (
               <div key={photo.id} className="rounded-lg border border-border bg-background p-3">
                 <PhotoPreview url={photo.url} alt={photo.caption || photo.originalName} />
-                <p className="truncate text-sm font-semibold">{photo.caption || photo.originalName}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{(photo.size / 1024).toFixed(1)} KB · {formatDateTime(photo.createdAt)}</p>
+                <div className="mt-3 flex items-start gap-2">
+                  <ImageIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{photo.caption || photo.originalName}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Adjunto fotográfico · {(photo.size / 1024).toFixed(1)} KB · {formatDateTime(photo.createdAt)}</p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -315,35 +323,39 @@ export function ServiceOrderDetailPage() {
           </div>
           <Button variant="secondary" onClick={() => window.print()}><Printer className="h-4 w-4" />Imprimir</Button>
         </div>
-        <div className="print-document mt-6 overflow-hidden rounded-xl border border-border bg-background text-sm shadow-sm">
-          <div className="bg-slate-950 px-6 py-5 text-white">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="print-document mt-6 overflow-hidden rounded-xl border border-border bg-white text-sm shadow-sm">
+          <div className="border-b-4 border-primary bg-white px-7 py-6 text-slate-950">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-xl font-black text-primary-foreground">MM</div>
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-2xl font-black text-primary-foreground shadow-sm">MM</div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-300">MilMecanic Taller</p>
-                  <h3 className="mt-1 text-2xl font-bold">Orden de servicio</h3>
-                  <p className="mt-1 text-sm text-slate-300">Gestión inteligente para talleres</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.28em] text-primary">MilMecanic Taller</p>
+                  <h3 className="mt-1 text-3xl font-black tracking-tight">Acta de recepción</h3>
+                  <p className="mt-1 text-base font-semibold text-slate-600">Orden de servicio y constancia de ingreso del vehículo</p>
                 </div>
               </div>
-              <div className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-left sm:text-right">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-300">Número</p>
-                <p className="mt-1 text-2xl font-bold">{order.orderNumber}</p>
-                <p className="mt-1 text-xs text-slate-300">{formatDateTime(order.createdAt)}</p>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-left sm:text-right">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Orden No.</p>
+                <p className="mt-1 text-3xl font-black text-slate-950">{order.orderNumber}</p>
+                <p className="mt-1 text-xs font-medium text-slate-500">{formatDateTime(order.createdAt)}</p>
               </div>
             </div>
           </div>
 
-          <div className="space-y-5 p-6">
-            <div className="grid gap-4 md:grid-cols-3">
+          <div className="space-y-5 p-7">
+            <div className="grid gap-3 md:grid-cols-4">
               <PrintInfoCard title="Estado" value={<ServiceOrderStatusBadge status={order.status} />} />
               <PrintInfoCard title="Asesor" value={order.assignedAdvisor?.displayName ?? 'Sin asesor'} />
               <PrintInfoCard title="Mecánico" value={order.assignedMechanic?.displayName ?? 'Sin mecánico'} />
+              <PrintInfoCard title="Adjuntos" value={`${order.photos.length} archivo${order.photos.length === 1 ? '' : 's'}`} />
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
-              <div className="print-card rounded-xl border border-slate-200 bg-white p-4">
-                <h4 className="border-b border-slate-200 pb-2 text-sm font-bold uppercase tracking-wide text-slate-700">Datos del cliente</h4>
+              <div className="print-card rounded-xl border border-slate-200 bg-white p-5">
+                <h4 className="flex items-center gap-2 border-b border-slate-200 pb-2 text-sm font-black uppercase tracking-wide text-slate-700">
+                  <FileText className="h-4 w-4 text-primary" />
+                  Datos del cliente
+                </h4>
                 <div className="mt-3 grid gap-2 text-sm">
                   <PrintLine label="Cliente" value={order.customer.displayName} />
                   <PrintLine label="Identificación" value={order.customer.identification} />
@@ -351,8 +363,11 @@ export function ServiceOrderDetailPage() {
                 </div>
               </div>
 
-              <div className="print-card rounded-xl border border-slate-200 bg-white p-4">
-                <h4 className="border-b border-slate-200 pb-2 text-sm font-bold uppercase tracking-wide text-slate-700">Datos del vehículo</h4>
+              <div className="print-card rounded-xl border border-slate-200 bg-white p-5">
+                <h4 className="flex items-center gap-2 border-b border-slate-200 pb-2 text-sm font-black uppercase tracking-wide text-slate-700">
+                  <FileText className="h-4 w-4 text-primary" />
+                  Datos del vehículo
+                </h4>
                 <div className="mt-3 grid gap-2 text-sm">
                   <PrintLine label="Placa" value={order.vehicle.plate} />
                   <PrintLine label="Vehículo" value={order.vehicle.displayName} />
@@ -367,8 +382,8 @@ export function ServiceOrderDetailPage() {
               <PrintTextCard title="Diagnóstico inicial" value={order.initialDiagnosis} />
             </div>
 
-            <div className="print-card rounded-xl border border-slate-200 bg-white p-4">
-              <h4 className="text-sm font-bold uppercase tracking-wide text-slate-700">Condición de recepción</h4>
+            <div className="print-card rounded-xl border border-slate-200 bg-white p-5">
+              <h4 className="text-sm font-black uppercase tracking-wide text-slate-700">Condición de recepción</h4>
               <div className="mt-3 grid gap-3 md:grid-cols-3">
                 <PrintMiniText title="Exterior" value={order.exteriorCondition} />
                 <PrintMiniText title="Interior" value={order.interiorCondition} />
@@ -382,8 +397,27 @@ export function ServiceOrderDetailPage() {
               <PrintInfoCard title="Finalización" value={formatDateTime(order.completedAt)} />
             </div>
 
-            <div className="print-card rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs leading-5 text-slate-600">
-              <h4 className="text-sm font-bold uppercase tracking-wide text-slate-700">Constancia de recepción</h4>
+            {order.photos.length > 0 ? (
+              <div className="print-card rounded-xl border border-slate-200 bg-white p-5">
+                <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-slate-700">
+                  <Paperclip className="h-4 w-4 text-primary" />
+                  Anexos fotográficos
+                </h4>
+                <p className="mt-1 text-xs text-slate-500">Evidencia adjunta registrada durante la recepción de la orden.</p>
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  {order.photos.map((photo, index) => (
+                    <div key={photo.id} className="rounded-lg border border-slate-200 p-2">
+                      <PhotoPreview url={photo.url} alt={photo.caption || photo.originalName} />
+                      <p className="mt-2 text-xs font-bold text-slate-800">Adjunto {index + 1}</p>
+                      <p className="text-[11px] leading-4 text-slate-500">{photo.caption || photo.originalName}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="print-card rounded-xl border border-slate-200 bg-slate-50 p-5 text-xs leading-5 text-slate-600">
+              <h4 className="text-sm font-black uppercase tracking-wide text-slate-700">Constancia y autorización</h4>
               <p className="mt-2">
                 El cliente autoriza la recepción del vehículo para inspección y diagnóstico inicial. Cualquier reparación, repuesto o trabajo adicional
                 deberá ser informado y aprobado antes de su ejecución. El taller registra las condiciones visibles indicadas en esta orden.
