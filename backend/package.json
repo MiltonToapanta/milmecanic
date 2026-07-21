@@ -7,7 +7,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"prisma/**/*.ts\"",
     "start": "nest start",
-    "start:prod": "node dist/main.js",
+    "start:prod": "node dist/src/main.js",
     "start:dev": "nest start --watch",
     "lint": "eslint .",
     "test": "jest",

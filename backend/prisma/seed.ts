@@ -1,4 +1,4 @@
-import { AppointmentStatus, CustomerType, FuelType, IdentificationType, PrismaClient, TransmissionType } from '@prisma/client';
+import { AppointmentStatus, CustomerType, FuelLevel, FuelType, IdentificationType, PrismaClient, ServiceOrderStatus, TransmissionType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -32,6 +32,11 @@ const permissions = [
   ['appointments.update', 'Actualizar citas', 'appointments'],
   ['appointments.change-status', 'Cambiar estado de citas', 'appointments'],
   ['appointments.delete', 'Eliminar citas', 'appointments'],
+  ['service-orders.read', 'Ver órdenes de servicio', 'service-orders'],
+  ['service-orders.create', 'Crear órdenes de servicio', 'service-orders'],
+  ['service-orders.update', 'Actualizar órdenes de servicio', 'service-orders'],
+  ['service-orders.change-status', 'Cambiar estado de órdenes de servicio', 'service-orders'],
+  ['service-orders.delete', 'Eliminar órdenes de servicio', 'service-orders'],
   ['roles.read', 'Ver roles y permisos', 'roles'],
   ['settings.read', 'Ver configuración del taller', 'settings'],
   ['settings.update', 'Actualizar configuración del taller', 'settings'],
@@ -190,7 +195,16 @@ async function main(): Promise<void> {
   }
 
   const serviceAdvisorRole = await prisma.role.findUniqueOrThrow({ where: { name: 'Asesor de servicio' } });
-  const serviceAdvisorPermissionCodes = ['appointments.read', 'appointments.create', 'appointments.update'];
+  const serviceAdvisorPermissionCodes = [
+    'appointments.read',
+    'appointments.create',
+    'appointments.update',
+    'appointments.change-status',
+    'service-orders.read',
+    'service-orders.create',
+    'service-orders.update',
+    'service-orders.change-status'
+  ];
   const serviceAdvisorPermissions = await prisma.permission.findMany({ where: { code: { in: serviceAdvisorPermissionCodes } } });
   for (const permission of serviceAdvisorPermissions) {
     await prisma.rolePermission.upsert({
@@ -203,6 +217,25 @@ async function main(): Promise<void> {
       update: {},
       create: {
         roleId: serviceAdvisorRole.id,
+        permissionId: permission.id
+      }
+    });
+  }
+
+  const mechanicRole = await prisma.role.findUniqueOrThrow({ where: { name: 'Mecánico' } });
+  const mechanicPermissionCodes = ['service-orders.read', 'service-orders.update', 'service-orders.change-status'];
+  const mechanicPermissions = await prisma.permission.findMany({ where: { code: { in: mechanicPermissionCodes } } });
+  for (const permission of mechanicPermissions) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: mechanicRole.id,
+          permissionId: permission.id
+        }
+      },
+      update: {},
+      create: {
+        roleId: mechanicRole.id,
         permissionId: permission.id
       }
     });
@@ -269,6 +302,7 @@ async function main(): Promise<void> {
 
   const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: 'super@milmecanic.local' } });
   const advisorUser = await prisma.user.findUniqueOrThrow({ where: { email: 'asesor@milmecanic.local' } });
+  const mechanicUser = await prisma.user.findUniqueOrThrow({ where: { email: 'mecanico@milmecanic.local' } });
 
   for (const customer of demoCustomers) {
     const existingCustomer = await prisma.customer.findFirst({
@@ -381,6 +415,80 @@ async function main(): Promise<void> {
       await prisma.appointment.update({ where: { id: existingAppointment.id }, data });
     } else {
       await prisma.appointment.create({ data });
+    }
+  }
+
+  const serviceOrderSeeds = [
+    {
+      plate: 'PBA1234',
+      customerRequest: 'Mantenimiento preventivo completo y revisión general antes de viaje.',
+      initialDiagnosis: 'Unidad recibida para revisión de aceite, filtros, frenos y niveles.',
+      internalNotes: 'Orden demo en diagnóstico.',
+      reportedMileage: 48200,
+      fuelLevel: FuelLevel.HALF,
+      status: ServiceOrderStatus.DIAGNOSIS
+    },
+    {
+      plate: 'PCB5678',
+      customerRequest: 'Ruido al frenar y vibración leve en el volante.',
+      initialDiagnosis: 'Se recomienda inspección de pastillas, discos y alineación.',
+      internalNotes: 'Orden demo aprobada para revisión de frenos.',
+      reportedMileage: 31800,
+      fuelLevel: FuelLevel.THREE_QUARTERS,
+      status: ServiceOrderStatus.APPROVED
+    }
+  ] as const;
+
+  const setting = await prisma.workshopSetting.findFirst({ where: { deletedAt: null } });
+  const serviceOrderPrefix = setting?.serviceOrderPrefix ?? 'OT';
+
+  for (const serviceOrderSeed of serviceOrderSeeds) {
+    const vehicle = await prisma.vehicle.findFirstOrThrow({
+      where: { plate: serviceOrderSeed.plate, deletedAt: null },
+      include: { customer: true }
+    });
+    const appointment = await prisma.appointment.findFirst({
+      where: { vehicleId: vehicle.id, deletedAt: null },
+      orderBy: { scheduledAt: 'asc' }
+    });
+    const existingServiceOrder = await prisma.serviceOrder.findFirst({
+      where: {
+        vehicleId: vehicle.id,
+        customerRequest: serviceOrderSeed.customerRequest,
+        deletedAt: null
+      }
+    });
+    const data = {
+      customerId: vehicle.customerId,
+      vehicleId: vehicle.id,
+      appointmentId: appointment?.id,
+      assignedAdvisorId: advisorUser.id,
+      assignedMechanicId: mechanicUser.id,
+      reportedMileage: serviceOrderSeed.reportedMileage,
+      fuelLevel: serviceOrderSeed.fuelLevel,
+      status: serviceOrderSeed.status,
+      customerRequest: serviceOrderSeed.customerRequest,
+      initialDiagnosis: serviceOrderSeed.initialDiagnosis,
+      internalNotes: serviceOrderSeed.internalNotes,
+      isActive: true,
+      createdById: adminUser.id,
+      updatedById: adminUser.id
+    };
+
+    if (existingServiceOrder) {
+      await prisma.serviceOrder.update({ where: { id: existingServiceOrder.id }, data });
+    } else {
+      const counter = await prisma.serviceOrderCounter.upsert({
+        where: { prefix: serviceOrderPrefix },
+        update: { currentNumber: { increment: 1 } },
+        create: { prefix: serviceOrderPrefix, currentNumber: 1 }
+      });
+      await prisma.serviceOrder.create({
+        data: {
+          ...data,
+          orderNumber: `${serviceOrderPrefix}-${counter.currentNumber.toString().padStart(6, '0')}`
+        }
+      });
     }
   }
 
