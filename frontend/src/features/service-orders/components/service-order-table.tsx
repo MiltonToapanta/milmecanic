@@ -1,4 +1,4 @@
-import { Edit, Eye, RefreshCcw, Trash2 } from 'lucide-react';
+import { ClipboardCheck, Edit, Eye, RefreshCcw, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../../components/ui/button';
 import { fuelLevelOptions } from '../../../config/catalogs';
@@ -29,6 +29,8 @@ export function ServiceOrderTable({ serviceOrders, onChangeStatus, onDelete }: S
   const canUpdate = hasPermission('service-orders.update');
   const canChange = hasPermission('service-orders.change-status');
   const canDelete = hasPermission('service-orders.delete');
+  const canReadDiagnostics = hasPermission('service-diagnostics.read');
+  const canCreateDiagnostics = hasPermission('service-diagnostics.create');
 
   return (
     <div className="overflow-x-auto rounded-md border border-border bg-card">
@@ -71,6 +73,21 @@ export function ServiceOrderTable({ serviceOrders, onChangeStatus, onDelete }: S
                   <Button variant="ghost" className="h-9 w-9 px-0" title="Ver">
                     <Link to={`/service-orders/${order.id}`}><Eye className="h-4 w-4" /></Link>
                   </Button>
+                  {canReadDiagnostics ? (
+                    <Button variant="secondary" className="h-9 px-3" title="Abrir diagnóstico técnico">
+                      <Link to={`/service-orders/${order.id}/diagnostic`} className="flex items-center gap-2">
+                        <ClipboardCheck className="h-4 w-4" />
+                        Diagnóstico
+                      </Link>
+                    </Button>
+                  ) : canCreateDiagnostics && order.status === 'DIAGNOSIS' ? (
+                    <Button variant="secondary" className="h-9 px-3" title="Crear diagnóstico técnico">
+                      <Link to={`/service-orders/${order.id}/diagnostic/new`} className="flex items-center gap-2">
+                        <ClipboardCheck className="h-4 w-4" />
+                        Diagnóstico
+                      </Link>
+                    </Button>
+                  ) : null}
                   {canUpdate && order.status !== 'DELIVERED' && order.status !== 'CANCELLED' ? (
                     <Button variant="ghost" className="h-9 w-9 px-0" title="Editar">
                       <Link to={`/service-orders/${order.id}/edit`}><Edit className="h-4 w-4" /></Link>
