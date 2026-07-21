@@ -59,7 +59,39 @@ export function DiagnosticDetailPage() {
 
   if (diagnosticQuery.isLoading) return <LoadingState />;
   if (diagnosticQuery.isError) return <ErrorState message={getErrorMessage(diagnosticQuery.error)} />;
-  if (!diagnostic || !serviceOrderId) return <ErrorState message="La orden no tiene un diagnóstico técnico registrado." />;
+  if (!serviceOrderId) return <ErrorState message="Orden no encontrada" />;
+  if (!diagnostic) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Diagnóstico técnico"
+          description="Esta orden todavía no tiene un diagnóstico registrado."
+          action={
+            <Button variant="secondary">
+              <Link to={`/service-orders/${serviceOrderId}`} className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Volver a la orden
+              </Link>
+            </Button>
+          }
+        />
+        <section className="rounded-lg border border-dashed border-border bg-card p-6">
+          <h2 className="text-base font-semibold">Aún no existe diagnóstico</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Cree el diagnóstico para registrar categorías revisadas, fallas, severidad y recomendaciones.
+          </p>
+          {hasPermission('service-diagnostics.create') ? (
+            <Button className="mt-4">
+              <Link to={`/service-orders/${serviceOrderId}/diagnostic/new`} className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                Crear diagnóstico
+              </Link>
+            </Button>
+          ) : null}
+        </section>
+      </div>
+    );
+  }
 
   const canEdit = !diagnostic.completedAt && hasPermission('service-diagnostics.update');
   const canComplete = !diagnostic.completedAt && diagnostic.items.length > 0 && hasPermission('service-diagnostics.complete');
