@@ -37,6 +37,11 @@ const permissions = [
   ['service-orders.update', 'Actualizar órdenes de servicio', 'service-orders'],
   ['service-orders.change-status', 'Cambiar estado de órdenes de servicio', 'service-orders'],
   ['service-orders.delete', 'Eliminar órdenes de servicio', 'service-orders'],
+  ['service-diagnostics.read', 'Ver diagnósticos técnicos', 'service-diagnostics'],
+  ['service-diagnostics.create', 'Crear diagnósticos técnicos', 'service-diagnostics'],
+  ['service-diagnostics.update', 'Actualizar diagnósticos técnicos', 'service-diagnostics'],
+  ['service-diagnostics.complete', 'Completar diagnósticos técnicos', 'service-diagnostics'],
+  ['service-diagnostics.delete', 'Eliminar diagnósticos técnicos', 'service-diagnostics'],
   ['roles.read', 'Ver roles y permisos', 'roles'],
   ['settings.read', 'Ver configuración del taller', 'settings'],
   ['settings.update', 'Actualizar configuración del taller', 'settings'],
@@ -203,7 +208,11 @@ async function main(): Promise<void> {
     'service-orders.read',
     'service-orders.create',
     'service-orders.update',
-    'service-orders.change-status'
+    'service-orders.change-status',
+    'service-diagnostics.read',
+    'service-diagnostics.create',
+    'service-diagnostics.update',
+    'service-diagnostics.complete'
   ];
   const serviceAdvisorPermissions = await prisma.permission.findMany({ where: { code: { in: serviceAdvisorPermissionCodes } } });
   for (const permission of serviceAdvisorPermissions) {
@@ -223,7 +232,15 @@ async function main(): Promise<void> {
   }
 
   const mechanicRole = await prisma.role.findUniqueOrThrow({ where: { name: 'Mecánico' } });
-  const mechanicPermissionCodes = ['service-orders.read', 'service-orders.update', 'service-orders.change-status'];
+  const mechanicPermissionCodes = [
+    'service-orders.read',
+    'service-orders.update',
+    'service-orders.change-status',
+    'service-diagnostics.read',
+    'service-diagnostics.create',
+    'service-diagnostics.update',
+    'service-diagnostics.complete'
+  ];
   const mechanicPermissions = await prisma.permission.findMany({ where: { code: { in: mechanicPermissionCodes } } });
   for (const permission of mechanicPermissions) {
     await prisma.rolePermission.upsert({

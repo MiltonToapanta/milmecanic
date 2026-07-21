@@ -9,38 +9,40 @@ datasource db {
 }
 
 model User {
-  id                    String         @id @default(uuid()) @db.Uuid
-  firstName             String         @map("first_name") @db.VarChar(100)
-  lastName              String         @map("last_name") @db.VarChar(100)
-  email                 String         @unique @db.VarChar(180)
-  passwordHash          String         @map("password_hash")
-  phone                 String?        @db.VarChar(30)
-  isActive              Boolean        @default(true) @map("is_active")
-  roleId                String         @map("role_id") @db.Uuid
-  lastLoginAt           DateTime?      @map("last_login_at") @db.Timestamptz
-  createdAt             DateTime       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt             DateTime       @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt             DateTime?      @map("deleted_at") @db.Timestamptz
-  createdById           String?        @map("created_by_id") @db.Uuid
-  updatedById           String?        @map("updated_by_id") @db.Uuid
-  role                  Role           @relation(fields: [roleId], references: [id])
+  id                    String              @id @default(uuid()) @db.Uuid
+  firstName             String              @map("first_name") @db.VarChar(100)
+  lastName              String              @map("last_name") @db.VarChar(100)
+  email                 String              @unique @db.VarChar(180)
+  passwordHash          String              @map("password_hash")
+  phone                 String?             @db.VarChar(30)
+  isActive              Boolean             @default(true) @map("is_active")
+  roleId                String              @map("role_id") @db.Uuid
+  lastLoginAt           DateTime?           @map("last_login_at") @db.Timestamptz
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt             DateTime?           @map("deleted_at") @db.Timestamptz
+  createdById           String?             @map("created_by_id") @db.Uuid
+  updatedById           String?             @map("updated_by_id") @db.Uuid
+  role                  Role                @relation(fields: [roleId], references: [id])
   refreshTokens         RefreshToken[]
-  createdUsers          User[]         @relation("UserCreatedBy")
-  createdBy             User?          @relation("UserCreatedBy", fields: [createdById], references: [id])
-  updatedUsers          User[]         @relation("UserUpdatedBy")
-  updatedBy             User?          @relation("UserUpdatedBy", fields: [updatedById], references: [id])
+  createdUsers          User[]              @relation("UserCreatedBy")
+  createdBy             User?               @relation("UserCreatedBy", fields: [createdById], references: [id])
+  updatedUsers          User[]              @relation("UserUpdatedBy")
+  updatedBy             User?               @relation("UserUpdatedBy", fields: [updatedById], references: [id])
   auditLogs             AuditLog[]
-  createdCustomers      Customer[]     @relation("CustomerCreatedBy")
-  updatedCustomers      Customer[]     @relation("CustomerUpdatedBy")
-  createdVehicles       Vehicle[]      @relation("VehicleCreatedBy")
-  updatedVehicles       Vehicle[]      @relation("VehicleUpdatedBy")
-  assignedAppointments  Appointment[]  @relation("AppointmentAssignedUser")
-  createdAppointments   Appointment[]  @relation("AppointmentCreatedBy")
-  updatedAppointments   Appointment[]  @relation("AppointmentUpdatedBy")
-  advisorServiceOrders  ServiceOrder[] @relation("ServiceOrderAssignedAdvisor")
-  mechanicServiceOrders ServiceOrder[] @relation("ServiceOrderAssignedMechanic")
-  createdServiceOrders  ServiceOrder[] @relation("ServiceOrderCreatedBy")
-  updatedServiceOrders  ServiceOrder[] @relation("ServiceOrderUpdatedBy")
+  createdCustomers      Customer[]          @relation("CustomerCreatedBy")
+  updatedCustomers      Customer[]          @relation("CustomerUpdatedBy")
+  createdVehicles       Vehicle[]           @relation("VehicleCreatedBy")
+  updatedVehicles       Vehicle[]           @relation("VehicleUpdatedBy")
+  assignedAppointments  Appointment[]       @relation("AppointmentAssignedUser")
+  createdAppointments   Appointment[]       @relation("AppointmentCreatedBy")
+  updatedAppointments   Appointment[]       @relation("AppointmentUpdatedBy")
+  advisorServiceOrders  ServiceOrder[]      @relation("ServiceOrderAssignedAdvisor")
+  mechanicServiceOrders ServiceOrder[]      @relation("ServiceOrderAssignedMechanic")
+  createdServiceOrders  ServiceOrder[]      @relation("ServiceOrderCreatedBy")
+  updatedServiceOrders  ServiceOrder[]      @relation("ServiceOrderUpdatedBy")
+  createdDiagnostics    ServiceDiagnostic[] @relation("ServiceDiagnosticCreatedBy")
+  updatedDiagnostics    ServiceDiagnostic[] @relation("ServiceDiagnosticUpdatedBy")
 
   @@index([roleId])
   @@index([isActive])
@@ -243,6 +245,7 @@ model ServiceOrder {
   createdBy             User?               @relation("ServiceOrderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   updatedBy             User?               @relation("ServiceOrderUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
   photos                ServiceOrderPhoto[]
+  diagnostics           ServiceDiagnostic[]
 
   @@index([customerId])
   @@index([vehicleId])
@@ -272,6 +275,80 @@ model ServiceOrderPhoto {
   @@index([serviceOrderId])
   @@index([deletedAt])
   @@map("service_order_photos")
+}
+
+enum DiagnosticItemStatus {
+  GOOD
+  REGULAR
+  BAD
+  NOT_CHECKED
+}
+
+enum DiagnosticSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum DiagnosticCategory {
+  ENGINE
+  BRAKES
+  SUSPENSION
+  STEERING
+  TRANSMISSION
+  ELECTRICAL
+  BATTERY
+  TIRES
+  COOLING
+  EXHAUST
+  BODY
+  LIGHTS
+  FLUIDS
+  OTHER
+}
+
+model ServiceDiagnostic {
+  id                 String                  @id @default(uuid()) @db.Uuid
+  serviceOrderId     String                  @map("service_order_id") @db.Uuid
+  generalObservation String?                 @map("general_observation")
+  recommendation     String?
+  completedAt        DateTime?               @map("completed_at") @db.Timestamptz
+  createdAt          DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt          DateTime?               @map("deleted_at") @db.Timestamptz
+  createdById        String?                 @map("created_by_id") @db.Uuid
+  updatedById        String?                 @map("updated_by_id") @db.Uuid
+  serviceOrder       ServiceOrder            @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  createdBy          User?                   @relation("ServiceDiagnosticCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy          User?                   @relation("ServiceDiagnosticUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  items              ServiceDiagnosticItem[]
+
+  @@index([serviceOrderId])
+  @@index([completedAt])
+  @@index([deletedAt])
+  @@map("service_diagnostics")
+}
+
+model ServiceDiagnosticItem {
+  id           String               @id @default(uuid()) @db.Uuid
+  diagnosticId String               @map("diagnostic_id") @db.Uuid
+  category     DiagnosticCategory
+  itemName     String               @map("item_name") @db.VarChar(120)
+  status       DiagnosticItemStatus
+  observation  String?
+  severity     DiagnosticSeverity?
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt    DateTime?            @map("deleted_at") @db.Timestamptz
+  diagnostic   ServiceDiagnostic    @relation(fields: [diagnosticId], references: [id], onDelete: Cascade)
+
+  @@index([diagnosticId])
+  @@index([category])
+  @@index([status])
+  @@index([severity])
+  @@index([deletedAt])
+  @@map("service_diagnostic_items")
 }
 
 model ServiceOrderCounter {
