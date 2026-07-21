@@ -67,3 +67,11 @@ export async function deleteServiceOrder(id: string): Promise<ServiceOrder> {
   const { data } = await apiClient.delete<ApiResponse<ServiceOrder>>(`/service-orders/${id}`);
   return data.data;
 }
+
+export async function uploadServiceOrderPhoto(id: string, file: File, caption?: string): Promise<ServiceOrder> {
+  const formData = new FormData();
+  formData.append('photo', file);
+  if (caption) formData.append('caption', caption);
+  const { data } = await apiClient.post<ApiResponse<ServiceOrder>>(`/service-orders/${id}/photos`, formData);
+  return data.data;
+}

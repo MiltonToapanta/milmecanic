@@ -1,5 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
+import { join } from 'node:path';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../../common/interfaces/authenticated-user.interface';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -10,6 +13,7 @@ import { CreateServiceOrderDto } from '../dto/create-service-order.dto';
 import { ServiceOrderQueryDto } from '../dto/service-order-query.dto';
 import { UpdateServiceOrderDto } from '../dto/update-service-order.dto';
 import { ServiceOrdersService } from '../services/service-orders.service';
+import { UploadedServiceOrderFile } from '../services/service-orders.service';
 
 @ApiTags('Service orders')
 @ApiBearerAuth()
@@ -46,6 +50,24 @@ export class ServiceOrdersController {
   @Permissions('service-orders.change-status')
   async changeStatus(@Param('id') id: string, @Body() dto: ChangeServiceOrderStatusDto, @CurrentUser() user: AuthenticatedUser) {
     return { message: 'Estado de la orden actualizado correctamente', data: await this.serviceOrdersService.changeStatus(id, dto, user.id) };
+  }
+
+  @Post('service-orders/:id/photos')
+  @Permissions('service-orders.update')
+  @UseInterceptors(FileInterceptor('photo'))
+  async uploadPhoto(
+    @Param('id') id: string,
+    @UploadedFile() file: UploadedServiceOrderFile,
+    @Body('caption') caption: string | undefined,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return { message: 'Foto agregada correctamente', data: await this.serviceOrdersService.addPhoto(id, file, user.id, caption) };
+  }
+
+  @Get('service-orders/:id/photos/:fileName')
+  @Permissions('service-orders.read')
+  getPhoto(@Param('id') id: string, @Param('fileName') fileName: string, @Res() response: Response) {
+    return response.sendFile(join(process.cwd(), 'uploads', 'service-orders', id, fileName));
   }
 
   @Delete('service-orders/:id')

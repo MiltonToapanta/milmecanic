@@ -77,3 +77,14 @@ export function useDeleteServiceOrder() {
   const queryClient = useQueryClient();
   return useMutation({ mutationFn: serviceOrdersApi.deleteServiceOrder, onSuccess: async () => queryClient.invalidateQueries({ queryKey: serviceOrderKeys.all }) });
 }
+
+export function useUploadServiceOrderPhoto() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, file, caption }: { id: string; file: File; caption?: string }) => serviceOrdersApi.uploadServiceOrderPhoto(id, file, caption),
+    onSuccess: async (_order, variables) => {
+      await queryClient.invalidateQueries({ queryKey: serviceOrderKeys.all });
+      await queryClient.invalidateQueries({ queryKey: serviceOrderKeys.detail(variables.id) });
+    }
+  });
+}

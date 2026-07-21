@@ -51,6 +51,11 @@ export interface ServiceOrder {
   customerRequest: string;
   initialDiagnosis?: string | null;
   internalNotes?: string | null;
+  exteriorCondition?: string | null;
+  interiorCondition?: string | null;
+  receivedAccessories?: string | null;
+  customerSignatureName?: string | null;
+  workshopSignatureName?: string | null;
   estimatedDeliveryAt?: string | null;
   startedAt?: string | null;
   completedAt?: string | null;
@@ -64,6 +69,18 @@ export interface ServiceOrder {
   appointment: ServiceOrderAppointmentSummary | null;
   assignedAdvisor: ServiceOrderUserSummary | null;
   assignedMechanic: ServiceOrderUserSummary | null;
+  photos: ServiceOrderPhoto[];
+}
+
+export interface ServiceOrderPhoto {
+  id: string;
+  fileName: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  caption?: string | null;
+  createdAt: string;
 }
 
 export interface ServiceOrderQuery {
@@ -104,6 +121,11 @@ export interface ServiceOrderPayload {
   customerRequest: string;
   initialDiagnosis?: string;
   internalNotes?: string;
+  exteriorCondition?: string;
+  interiorCondition?: string;
+  receivedAccessories?: string;
+  customerSignatureName?: string;
+  workshopSignatureName?: string;
   estimatedDeliveryAt?: string;
 }
 
@@ -118,6 +140,11 @@ export interface ServiceOrderFormValues {
   customerRequest: string;
   initialDiagnosis: string;
   internalNotes: string;
+  exteriorCondition: string;
+  interiorCondition: string;
+  receivedAccessories: string;
+  customerSignatureName: string;
+  workshopSignatureName: string;
   estimatedDeliveryDate: string;
   estimatedDeliveryTime: string;
 }

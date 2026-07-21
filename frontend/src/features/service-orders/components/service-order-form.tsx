@@ -21,6 +21,7 @@ interface ServiceOrderFormProps {
   serviceOrder?: ServiceOrder;
   initialCustomerId?: string;
   initialVehicleId?: string;
+  initialAppointmentId?: string;
   isSubmitting: boolean;
   onSubmit: (payload: ServiceOrderPayload) => Promise<void>;
 }
@@ -36,6 +37,11 @@ const defaultValues: ServiceOrderSchemaInput = {
   customerRequest: '',
   initialDiagnosis: '',
   internalNotes: '',
+  exteriorCondition: '',
+  interiorCondition: '',
+  receivedAccessories: '',
+  customerSignatureName: '',
+  workshopSignatureName: '',
   estimatedDeliveryDate: '',
   estimatedDeliveryTime: ''
 };
@@ -52,8 +58,8 @@ function toTimeInput(value?: string | null): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-function toFormValues(serviceOrder?: ServiceOrder, initialCustomerId?: string, initialVehicleId?: string): ServiceOrderSchemaInput {
-  if (!serviceOrder) return { ...defaultValues, customerId: initialCustomerId ?? '', vehicleId: initialVehicleId ?? '' };
+function toFormValues(serviceOrder?: ServiceOrder, initialCustomerId?: string, initialVehicleId?: string, initialAppointmentId?: string): ServiceOrderSchemaInput {
+  if (!serviceOrder) return { ...defaultValues, customerId: initialCustomerId ?? '', vehicleId: initialVehicleId ?? '', appointmentId: initialAppointmentId ?? '' };
   return {
     customerId: serviceOrder.customerId,
     vehicleId: serviceOrder.vehicleId,
@@ -65,6 +71,11 @@ function toFormValues(serviceOrder?: ServiceOrder, initialCustomerId?: string, i
     customerRequest: serviceOrder.customerRequest,
     initialDiagnosis: serviceOrder.initialDiagnosis ?? '',
     internalNotes: serviceOrder.internalNotes ?? '',
+    exteriorCondition: serviceOrder.exteriorCondition ?? '',
+    interiorCondition: serviceOrder.interiorCondition ?? '',
+    receivedAccessories: serviceOrder.receivedAccessories ?? '',
+    customerSignatureName: serviceOrder.customerSignatureName ?? serviceOrder.customer.displayName,
+    workshopSignatureName: serviceOrder.workshopSignatureName ?? '',
     estimatedDeliveryDate: toDateInput(serviceOrder.estimatedDeliveryAt),
     estimatedDeliveryTime: toTimeInput(serviceOrder.estimatedDeliveryAt)
   };
@@ -106,17 +117,22 @@ function toPayload(values: ServiceOrderSchemaValues): ServiceOrderPayload {
     customerRequest: values.customerRequest,
     initialDiagnosis: emptyToUndefined(values.initialDiagnosis),
     internalNotes: emptyToUndefined(values.internalNotes),
+    exteriorCondition: emptyToUndefined(values.exteriorCondition),
+    interiorCondition: emptyToUndefined(values.interiorCondition),
+    receivedAccessories: emptyToUndefined(values.receivedAccessories),
+    customerSignatureName: emptyToUndefined(values.customerSignatureName),
+    workshopSignatureName: emptyToUndefined(values.workshopSignatureName),
     estimatedDeliveryAt: combineOptionalDateTime(values.estimatedDeliveryDate ?? '', values.estimatedDeliveryTime ?? '')
   };
 }
 
-export function ServiceOrderForm({ serviceOrder, initialCustomerId, initialVehicleId, isSubmitting, onSubmit }: ServiceOrderFormProps) {
+export function ServiceOrderForm({ serviceOrder, initialCustomerId, initialVehicleId, initialAppointmentId, isSubmitting, onSubmit }: ServiceOrderFormProps) {
   const [customerSearch, setCustomerSearch] = useState('');
   const [lastCustomerId, setLastCustomerId] = useState(initialCustomerId ?? serviceOrder?.customerId ?? '');
   const [lastVehicleId, setLastVehicleId] = useState(initialVehicleId ?? serviceOrder?.vehicleId ?? '');
   const form = useForm<ServiceOrderSchemaInput, unknown, ServiceOrderSchemaValues>({
     resolver: zodResolver(serviceOrderSchema),
-    defaultValues: toFormValues(serviceOrder, initialCustomerId, initialVehicleId)
+    defaultValues: toFormValues(serviceOrder, initialCustomerId, initialVehicleId, initialAppointmentId)
   });
   const selectedCustomerId = form.watch('customerId');
   const selectedVehicleId = form.watch('vehicleId');
@@ -138,10 +154,10 @@ export function ServiceOrderForm({ serviceOrder, initialCustomerId, initialVehic
   const usersQuery = useQuery({ queryKey: ['service-order-user-options'], queryFn: getUsers });
 
   useEffect(() => {
-    form.reset(toFormValues(serviceOrder, initialCustomerId, initialVehicleId));
+    form.reset(toFormValues(serviceOrder, initialCustomerId, initialVehicleId, initialAppointmentId));
     setLastCustomerId(initialCustomerId ?? serviceOrder?.customerId ?? '');
     setLastVehicleId(initialVehicleId ?? serviceOrder?.vehicleId ?? '');
-  }, [form, initialCustomerId, initialVehicleId, serviceOrder]);
+  }, [form, initialAppointmentId, initialCustomerId, initialVehicleId, serviceOrder]);
 
   useEffect(() => {
     if (!selectedCustomerId || !lastCustomerId) {
@@ -215,6 +231,27 @@ export function ServiceOrderForm({ serviceOrder, initialCustomerId, initialVehic
 
       <section className="mm-form-section">
         <div className="mm-section-header">
+          <div className="mm-section-icon"><CarFront className="h-5 w-5" /></div>
+          <div>
+            <h2 className="text-base font-semibold">Estado físico recibido</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Anote cómo llega el vehículo y qué accesorios deja el cliente.</p>
+          </div>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <FormField label="Condición exterior" error={form.formState.errors.exteriorCondition?.message} helper="Ejemplo: rayón en puerta derecha, golpe en parachoques.">
+            <textarea className="mm-textarea" {...form.register('exteriorCondition')} />
+          </FormField>
+          <FormField label="Condición interior" error={form.formState.errors.interiorCondition?.message} helper="Ejemplo: tapicería, tablero, objetos visibles.">
+            <textarea className="mm-textarea" {...form.register('interiorCondition')} />
+          </FormField>
+          <FormField label="Accesorios recibidos" error={form.formState.errors.receivedAccessories?.message} helper="Ejemplo: llave, control, gata, triángulos, radio.">
+            <textarea className="mm-textarea" {...form.register('receivedAccessories')} />
+          </FormField>
+        </div>
+      </section>
+
+      <section className="mm-form-section">
+        <div className="mm-section-header">
           <div className="mm-section-icon"><UserRound className="h-5 w-5" /></div>
           <div>
             <h2 className="text-base font-semibold">Responsables</h2>
@@ -281,6 +318,24 @@ export function ServiceOrderForm({ serviceOrder, initialCustomerId, initialVehic
           </FormField>
           <FormField label="Notas internas" error={form.formState.errors.internalNotes?.message} helper="Opcional. Información visible solo para el equipo del taller.">
             <textarea className="mm-textarea" {...form.register('internalNotes')} />
+          </FormField>
+        </div>
+      </section>
+
+      <section className="mm-form-section">
+        <div className="mm-section-header">
+          <div className="mm-section-icon"><UserRound className="h-5 w-5" /></div>
+          <div>
+            <h2 className="text-base font-semibold">Nombres para firma</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Estos nombres aparecerán en el documento imprimible de la orden.</p>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField label="Firma del cliente" error={form.formState.errors.customerSignatureName?.message}>
+            <Input {...form.register('customerSignatureName')} placeholder="Nombre de quien entrega el vehículo" />
+          </FormField>
+          <FormField label="Firma del taller" error={form.formState.errors.workshopSignatureName?.message}>
+            <Input {...form.register('workshopSignatureName')} placeholder="Nombre de quien recibe en el taller" />
           </FormField>
         </div>
       </section>

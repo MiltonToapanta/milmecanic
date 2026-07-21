@@ -53,6 +53,31 @@ export class CreateServiceOrderDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsString()
+  exteriorCondition?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  interiorCondition?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  receivedAccessories?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  customerSignatureName?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  workshopSignatureName?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @Type(() => Date)
   @IsDate()
   estimatedDeliveryAt?: Date;

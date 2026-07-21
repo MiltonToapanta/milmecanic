@@ -86,7 +86,7 @@ export function CustomersPage() {
         ]}
       />
 
-      <section className="mm-filter-panel md:grid-cols-[1fr_180px_220px_160px]">
+      <section className="mm-filter-panel sm:grid-cols-2 xl:grid-cols-4">
         <label className="space-y-2">
           <span className="text-xs font-semibold text-muted-foreground">Buscar cliente</span>
           <SearchInput value={search} onChange={updateSearch} placeholder="Nombre, cédula, correo o teléfono" />

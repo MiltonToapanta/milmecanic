@@ -1,4 +1,4 @@
-import { Edit, RefreshCcw, Trash2 } from 'lucide-react';
+import { Edit, FileText, RefreshCcw, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../../components/ui/button';
 import { useAuthStore } from '../../auth/store/auth.store';
@@ -23,6 +23,7 @@ export function AppointmentTable({ appointments, onChangeStatus, onDelete }: App
   const canUpdate = hasPermission('appointments.update');
   const canChangeStatus = hasPermission('appointments.change-status');
   const canDelete = hasPermission('appointments.delete');
+  const canCreateServiceOrder = hasPermission('service-orders.create');
 
   return (
     <div className="overflow-x-auto rounded-md border border-border bg-card">
@@ -66,6 +67,14 @@ export function AppointmentTable({ appointments, onChangeStatus, onDelete }: App
                     <Button variant="secondary" className="h-9 px-3" onClick={() => onChangeStatus(appointment)} title="Cambiar estado">
                       <RefreshCcw className="h-4 w-4" />
                       Estado
+                    </Button>
+                  ) : null}
+                  {canCreateServiceOrder && appointment.status !== 'CANCELLED' ? (
+                    <Button variant="secondary" className="h-9 px-3" title="Crear orden desde esta cita">
+                      <Link to={`/service-orders/new?customerId=${appointment.customerId}&vehicleId=${appointment.vehicleId}&appointmentId=${appointment.id}`} className="flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Orden
+                      </Link>
                     </Button>
                   ) : null}
                   {canDelete ? (

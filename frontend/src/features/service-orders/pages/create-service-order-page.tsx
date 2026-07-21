@@ -21,6 +21,7 @@ export function CreateServiceOrderPage() {
   const createMutation = useCreateServiceOrder();
   const initialCustomerId = searchParams.get('customerId') ?? undefined;
   const initialVehicleId = searchParams.get('vehicleId') ?? undefined;
+  const initialAppointmentId = searchParams.get('appointmentId') ?? undefined;
 
   const handleSubmit = async (payload: ServiceOrderPayload) => {
     try {
@@ -47,6 +48,7 @@ export function CreateServiceOrderPage() {
       <ServiceOrderForm
         initialCustomerId={initialCustomerId}
         initialVehicleId={initialVehicleId}
+        initialAppointmentId={initialAppointmentId}
         isSubmitting={createMutation.isPending}
         onSubmit={handleSubmit}
       />

@@ -1,11 +1,21 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, ServiceOrderStatus } from '@prisma/client';
+import { randomUUID } from 'node:crypto';
+import { mkdir } from 'node:fs/promises';
+import { extname, join } from 'node:path';
 import { AuditService } from '../../audit/services/audit.service';
 import { ChangeServiceOrderStatusDto } from '../dto/change-service-order-status.dto';
 import { CreateServiceOrderDto } from '../dto/create-service-order.dto';
 import { ServiceOrderQueryDto } from '../dto/service-order-query.dto';
 import { UpdateServiceOrderDto } from '../dto/update-service-order.dto';
 import { ServiceOrderResponse, ServiceOrdersRepository } from '../repositories/service-orders.repository';
+
+export interface UploadedServiceOrderFile {
+  originalname: string;
+  mimetype: string;
+  size: number;
+  buffer: Buffer;
+}
 
 const allowedTransitions: Record<ServiceOrderStatus, ServiceOrderStatus[]> = {
   [ServiceOrderStatus.RECEIVED]: [ServiceOrderStatus.DIAGNOSIS, ServiceOrderStatus.CANCELLED],
@@ -132,6 +142,32 @@ export class ServiceOrdersService {
     return serviceOrder;
   }
 
+  async addPhoto(id: string, file: UploadedServiceOrderFile | undefined, actorId?: string, caption?: string) {
+    const oldServiceOrder = await this.findById(id);
+    this.ensureEditable(oldServiceOrder);
+    if (!file) throw new BadRequestException('Seleccione una foto para subir');
+    if (!file.mimetype.startsWith('image/')) throw new BadRequestException('Solo se permiten imágenes');
+    if (file.size > 5 * 1024 * 1024) throw new BadRequestException('La imagen no debe superar 5 MB');
+
+    const safeExtension = extname(file.originalname).toLowerCase() || '.jpg';
+    const fileName = `${Date.now()}-${randomUUID()}${safeExtension}`;
+    const relativeUrl = `/service-orders/${id}/photos/${fileName}`;
+    const dir = join(process.cwd(), 'uploads', 'service-orders', id);
+    await mkdir(dir, { recursive: true });
+    await import('node:fs/promises').then((fs) => fs.writeFile(join(dir, fileName), file.buffer));
+
+    const serviceOrder = await this.serviceOrdersRepository.addPhoto(id, {
+      fileName,
+      originalName: file.originalname,
+      mimeType: file.mimetype,
+      size: file.size,
+      url: relativeUrl,
+      caption: normalizeOptional(caption)
+    });
+    await this.audit('upload-photo', serviceOrder, actorId, oldServiceOrder, serviceOrder);
+    return serviceOrder;
+  }
+
   private async ensureServiceOrderRelations(
     customerId: string,
     vehicleId: string,
@@ -198,6 +234,11 @@ export class ServiceOrdersService {
       customerRequest: dto.customerRequest.trim(),
       initialDiagnosis: normalizeOptional(dto.initialDiagnosis),
       internalNotes: normalizeOptional(dto.internalNotes),
+      exteriorCondition: normalizeOptional(dto.exteriorCondition),
+      interiorCondition: normalizeOptional(dto.interiorCondition),
+      receivedAccessories: normalizeOptional(dto.receivedAccessories),
+      customerSignatureName: normalizeOptional(dto.customerSignatureName),
+      workshopSignatureName: normalizeOptional(dto.workshopSignatureName),
       estimatedDeliveryAt: dto.estimatedDeliveryAt
     };
   }
@@ -212,6 +253,11 @@ export class ServiceOrdersService {
       customerRequest: dto.customerRequest?.trim(),
       initialDiagnosis: normalizeOptional(dto.initialDiagnosis),
       internalNotes: normalizeOptional(dto.internalNotes),
+      exteriorCondition: normalizeOptional(dto.exteriorCondition),
+      interiorCondition: normalizeOptional(dto.interiorCondition),
+      receivedAccessories: normalizeOptional(dto.receivedAccessories),
+      customerSignatureName: normalizeOptional(dto.customerSignatureName),
+      workshopSignatureName: normalizeOptional(dto.workshopSignatureName),
       estimatedDeliveryAt: dto.estimatedDeliveryAt
     };
   }

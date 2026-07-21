@@ -23,6 +23,11 @@ const serviceOrderSelect = {
   customerRequest: true,
   initialDiagnosis: true,
   internalNotes: true,
+  exteriorCondition: true,
+  interiorCondition: true,
+  receivedAccessories: true,
+  customerSignatureName: true,
+  workshopSignatureName: true,
   estimatedDeliveryAt: true,
   startedAt: true,
   completedAt: true,
@@ -58,7 +63,21 @@ const serviceOrderSelect = {
     }
   },
   assignedAdvisor: { select: userSummarySelect },
-  assignedMechanic: { select: userSummarySelect }
+  assignedMechanic: { select: userSummarySelect },
+  photos: {
+    where: { deletedAt: null },
+    select: {
+      id: true,
+      fileName: true,
+      originalName: true,
+      mimeType: true,
+      size: true,
+      url: true,
+      caption: true,
+      createdAt: true
+    },
+    orderBy: { createdAt: 'asc' }
+  }
 } satisfies Prisma.ServiceOrderSelect;
 
 type ServiceOrderRecord = Prisma.ServiceOrderGetPayload<{ select: typeof serviceOrderSelect }>;
@@ -83,6 +102,15 @@ export interface ServiceOrderResponse
   } | null;
   assignedAdvisor: UserSummary | null;
   assignedMechanic: UserSummary | null;
+}
+
+export interface ServiceOrderPhotoInput {
+  fileName: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  caption?: string;
 }
 
 interface UserSummary {
@@ -189,6 +217,23 @@ export class ServiceOrdersRepository {
       select: serviceOrderSelect
     });
     return mapServiceOrder(serviceOrder);
+  }
+
+  async addPhoto(serviceOrderId: string, input: ServiceOrderPhotoInput): Promise<ServiceOrderResponse> {
+    await this.prisma.serviceOrderPhoto.create({
+      data: {
+        serviceOrderId,
+        fileName: input.fileName,
+        originalName: input.originalName,
+        mimeType: input.mimeType,
+        size: input.size,
+        url: input.url,
+        caption: input.caption
+      }
+    });
+    const serviceOrder = await this.findById(serviceOrderId);
+    if (!serviceOrder) throw new Error('Service order not found after photo upload');
+    return serviceOrder;
   }
 
   findActiveCustomerById(customerId: string) {

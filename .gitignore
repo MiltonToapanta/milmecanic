@@ -6,5 +6,6 @@ coverage
 .DS_Store
 *.log
 backend/generated
+backend/uploads
 frontend/.vite
 docker/postgres-data

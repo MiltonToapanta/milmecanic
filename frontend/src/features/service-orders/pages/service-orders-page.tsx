@@ -121,7 +121,7 @@ export function ServiceOrdersPage() {
         ]}
       />
 
-      <section className="mm-filter-panel lg:grid-cols-[1fr_220px_210px_180px_180px_180px_150px_150px]">
+      <section className="mm-filter-panel sm:grid-cols-2 xl:grid-cols-4">
         <label className="space-y-2">
           <span className="text-xs font-semibold text-muted-foreground">Buscar orden</span>
           <SearchInput value={search} onChange={(value) => { setPage(1); setSearch(value); }} placeholder="Orden, cliente, placa o solicitud" />

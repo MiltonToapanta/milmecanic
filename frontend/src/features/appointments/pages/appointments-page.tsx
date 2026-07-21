@@ -226,7 +226,7 @@ export function AppointmentsPage() {
         </Button>
       </div>
 
-      <section className="mm-filter-panel lg:grid-cols-[1fr_230px_220px_190px_180px_150px_150px]">
+      <section className="mm-filter-panel sm:grid-cols-2 xl:grid-cols-4">
         <label className="space-y-2">
           <span className="text-xs font-semibold text-muted-foreground">Buscar cita</span>
           <SearchInput value={search} onChange={(value) => { setPage(1); setSearch(value); }} placeholder="Cliente, placa, vehículo o motivo" />

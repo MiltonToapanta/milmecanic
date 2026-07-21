@@ -86,7 +86,7 @@ export function VehiclesPage() {
         ]}
       />
 
-      <section className="mm-filter-panel lg:grid-cols-[1fr_220px_160px_180px_180px_150px]">
+      <section className="mm-filter-panel sm:grid-cols-2 xl:grid-cols-3">
         <label className="space-y-2">
           <span className="text-xs font-semibold text-muted-foreground">Buscar vehículo</span>
           <SearchInput value={search} onChange={(value) => { setPage(1); setSearch(value); }} placeholder="Placa, VIN, marca o modelo" />
