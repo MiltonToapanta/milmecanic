@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { AppointmentStatus, CustomerType, FuelType, IdentificationType, PrismaClient, TransmissionType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -73,6 +73,83 @@ const developmentUsers = [
     email: 'caja@milmecanic.local',
     phone: '0990000005',
     roleName: 'Caja'
+  }
+] as const;
+
+const demoCustomers = [
+  {
+    customerType: CustomerType.PERSON,
+    identificationType: IdentificationType.CEDULA,
+    identification: '1700001001',
+    firstName: 'Carlos',
+    lastName: 'Mora',
+    email: 'carlos.mora@demo.milmecanic.local',
+    phone: '0991112233',
+    city: 'Quito',
+    address: 'Av. América N32-40',
+    notes: 'Cliente demo. Prefiere confirmación por WhatsApp.'
+  },
+  {
+    customerType: CustomerType.PERSON,
+    identificationType: IdentificationType.CEDULA,
+    identification: '1700001002',
+    firstName: 'María',
+    lastName: 'Paredes',
+    email: 'maria.paredes@demo.milmecanic.local',
+    phone: '0982223344',
+    city: 'Quito',
+    address: 'La Carolina, calle Japón',
+    notes: 'Cliente demo. Solicita revisar frenos antes de viajes.'
+  },
+  {
+    customerType: CustomerType.COMPANY,
+    identificationType: IdentificationType.RUC,
+    identification: '1790012345001',
+    businessName: 'Transporte Andino Demo S.A.',
+    email: 'operaciones@andino.demo.milmecanic.local',
+    phone: '022555100',
+    city: 'Quito',
+    address: 'Parque industrial norte',
+    notes: 'Empresa demo con flota liviana.'
+  }
+] as const;
+
+const demoVehicles = [
+  {
+    customerIdentification: '1700001001',
+    plate: 'PBA1234',
+    brand: 'Toyota',
+    model: 'Corolla',
+    year: 2021,
+    color: 'Blanco',
+    fuelType: FuelType.GASOLINE,
+    transmissionType: TransmissionType.AUTOMATIC,
+    mileage: 48200,
+    notes: 'Vehículo demo para citas de mantenimiento.'
+  },
+  {
+    customerIdentification: '1700001002',
+    plate: 'PCB5678',
+    brand: 'Kia',
+    model: 'Sportage',
+    year: 2022,
+    color: 'Gris',
+    fuelType: FuelType.GASOLINE,
+    transmissionType: TransmissionType.AUTOMATIC,
+    mileage: 31800,
+    notes: 'Vehículo demo con revisión de frenos.'
+  },
+  {
+    customerIdentification: '1790012345001',
+    plate: 'PCT9012',
+    brand: 'Chevrolet',
+    model: 'D-Max',
+    year: 2020,
+    color: 'Azul',
+    fuelType: FuelType.DIESEL,
+    transmissionType: TransmissionType.MANUAL,
+    mileage: 92500,
+    notes: 'Camioneta demo de flota empresarial.'
   }
 ] as const;
 
@@ -188,6 +265,123 @@ async function main(): Promise<void> {
         internalInvoicePrefix: 'FAC'
       }
     });
+  }
+
+  const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: 'super@milmecanic.local' } });
+  const advisorUser = await prisma.user.findUniqueOrThrow({ where: { email: 'asesor@milmecanic.local' } });
+
+  for (const customer of demoCustomers) {
+    const existingCustomer = await prisma.customer.findFirst({
+      where: { identification: customer.identification, deletedAt: null }
+    });
+    const data = {
+      customerType: customer.customerType,
+      identificationType: customer.identificationType,
+      identification: customer.identification,
+      firstName: customer.customerType === CustomerType.PERSON ? customer.firstName : null,
+      lastName: customer.customerType === CustomerType.PERSON ? customer.lastName : null,
+      businessName: customer.customerType === CustomerType.COMPANY ? customer.businessName : null,
+      email: customer.email,
+      phone: customer.phone,
+      city: customer.city,
+      address: customer.address,
+      notes: customer.notes,
+      isActive: true,
+      createdById: adminUser.id,
+      updatedById: adminUser.id
+    };
+    if (existingCustomer) {
+      await prisma.customer.update({ where: { id: existingCustomer.id }, data });
+    } else {
+      await prisma.customer.create({ data });
+    }
+  }
+
+  for (const vehicle of demoVehicles) {
+    const customer = await prisma.customer.findFirstOrThrow({
+      where: { identification: vehicle.customerIdentification, deletedAt: null }
+    });
+    const existingVehicle = await prisma.vehicle.findFirst({
+      where: { plate: vehicle.plate, deletedAt: null }
+    });
+    const data = {
+      customerId: customer.id,
+      plate: vehicle.plate,
+      brand: vehicle.brand,
+      model: vehicle.model,
+      year: vehicle.year,
+      color: vehicle.color,
+      fuelType: vehicle.fuelType,
+      transmissionType: vehicle.transmissionType,
+      mileage: vehicle.mileage,
+      notes: vehicle.notes,
+      isActive: true,
+      createdById: adminUser.id,
+      updatedById: adminUser.id
+    };
+    if (existingVehicle) {
+      await prisma.vehicle.update({ where: { id: existingVehicle.id }, data });
+    } else {
+      await prisma.vehicle.create({ data });
+    }
+  }
+
+  const appointmentSeeds = [
+    {
+      plate: 'PBA1234',
+      scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      estimatedDurationMinutes: 60,
+      reason: 'Mantenimiento preventivo de 50.000 km',
+      status: AppointmentStatus.SCHEDULED,
+      notes: 'Cita demo: revisar aceite, filtros y niveles.'
+    },
+    {
+      plate: 'PCB5678',
+      scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+      estimatedDurationMinutes: 90,
+      reason: 'Diagnóstico de frenos',
+      status: AppointmentStatus.CONFIRMED,
+      notes: 'Cita demo confirmada por teléfono.'
+    },
+    {
+      plate: 'PCT9012',
+      scheduledAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      estimatedDurationMinutes: 120,
+      reason: 'Revisión de suspensión y tren delantero',
+      status: AppointmentStatus.COMPLETED,
+      notes: 'Cita demo completada para historial.'
+    }
+  ] as const;
+
+  for (const appointment of appointmentSeeds) {
+    const vehicle = await prisma.vehicle.findFirstOrThrow({
+      where: { plate: appointment.plate, deletedAt: null },
+      include: { customer: true }
+    });
+    const existingAppointment = await prisma.appointment.findFirst({
+      where: {
+        vehicleId: vehicle.id,
+        reason: appointment.reason,
+        deletedAt: null
+      }
+    });
+    const data = {
+      customerId: vehicle.customerId,
+      vehicleId: vehicle.id,
+      assignedUserId: advisorUser.id,
+      scheduledAt: appointment.scheduledAt,
+      estimatedDurationMinutes: appointment.estimatedDurationMinutes,
+      reason: appointment.reason,
+      status: appointment.status,
+      notes: appointment.notes,
+      createdById: adminUser.id,
+      updatedById: adminUser.id
+    };
+    if (existingAppointment) {
+      await prisma.appointment.update({ where: { id: existingAppointment.id }, data });
+    } else {
+      await prisma.appointment.create({ data });
+    }
   }
 
   console.log('Seed completed. Development users use password: Admin123*');
