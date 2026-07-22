@@ -76,7 +76,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 12mm;
+    margin: 8mm;
   }
 
   body {
@@ -91,6 +91,8 @@ body {
   .print-document,
   .print-document * {
     visibility: visible !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
   }
 
   .print-document {
@@ -103,13 +105,127 @@ body {
     background: white !important;
     color: #111827 !important;
     overflow: visible !important;
+    font-size: 10px !important;
+    line-height: 1.32 !important;
   }
 
   .print-hide {
     display: none !important;
   }
 
+  .print-document .print-cover {
+    border-bottom: 3px solid #0f8a96 !important;
+    padding: 10px 14px !important;
+  }
+
+  .print-document .print-logo {
+    height: 40px !important;
+    width: 40px !important;
+    border-radius: 10px !important;
+    font-size: 15px !important;
+  }
+
+  .print-document .print-cover h3 {
+    margin-top: 1px !important;
+    font-size: 20px !important;
+    line-height: 1.05 !important;
+  }
+
+  .print-document .print-cover p {
+    margin-top: 2px !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+  }
+
+  .print-document .print-cover > div > div:last-child {
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+  }
+
+  .print-document .print-cover > div > div:last-child p:nth-child(2) {
+    font-size: 22px !important;
+    line-height: 1.05 !important;
+  }
+
+  .print-document .print-body {
+    padding: 10px 14px !important;
+  }
+
+  .print-document .space-y-5 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 8px !important;
+  }
+
+  .print-document .grid {
+    gap: 7px !important;
+  }
+
   .print-document .print-card {
+    border-radius: 7px !important;
     break-inside: avoid;
+    padding: 8px 10px !important;
+    box-shadow: none !important;
+  }
+
+  .print-document .rounded-xl,
+  .print-document .rounded-lg,
+  .print-document .rounded-2xl {
+    border-radius: 7px !important;
+  }
+
+  .print-document h4 {
+    padding-bottom: 4px !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .print-document svg {
+    height: 11px !important;
+    width: 11px !important;
+  }
+
+  .print-document p,
+  .print-document span,
+  .print-document div {
+    line-height: 1.32 !important;
+  }
+
+  .print-document .min-h-20 {
+    min-height: 34px !important;
+  }
+
+  .print-document .bg-slate-50 {
+    background: #f8fafc !important;
+  }
+
+  .print-document table {
+    font-size: 8.5px !important;
+  }
+
+  .print-document th,
+  .print-document td {
+    padding: 4px 5px !important;
+  }
+
+  .print-document img {
+    max-height: 72px !important;
+    object-fit: cover !important;
+  }
+
+  .print-document .print-signatures {
+    gap: 28px !important;
+    padding-top: 24px !important;
+  }
+
+  .print-document .print-signatures > div {
+    padding-top: 6px !important;
+  }
+
+  .print-document .print-signatures p {
+    font-size: 10px !important;
+  }
+
+  .print-document .print-signatures p:last-child {
+    font-size: 8px !important;
   }
 }

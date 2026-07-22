@@ -321,14 +321,17 @@ export function ServiceOrderDetailPage() {
           <div>
             <h2 className="text-base font-semibold">Documento de orden para firma</h2>
             <p className="mt-1 text-sm text-muted-foreground">Vista imprimible para que firmen cliente y taller al recibir el vehículo.</p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Para un PDF limpio en Chrome, desactive “Encabezados y pies de página” y active “Gráficos en segundo plano”.
+            </p>
           </div>
           <Button variant="secondary" onClick={() => window.print()}><Printer className="h-4 w-4" />Imprimir</Button>
         </div>
         <div className="print-document mt-6 overflow-hidden rounded-xl border border-border bg-white text-sm shadow-sm">
-          <div className="border-b-4 border-primary bg-white px-7 py-6 text-slate-950">
+          <div className="print-cover border-b-4 border-primary bg-white px-7 py-6 text-slate-950">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-2xl font-black text-primary-foreground shadow-sm">MM</div>
+                <div className="print-logo flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-2xl font-black text-primary-foreground shadow-sm">MM</div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.28em] text-primary">MilMecanic Taller</p>
                   <h3 className="mt-1 text-3xl font-black tracking-tight">Acta de recepción</h3>
@@ -343,7 +346,7 @@ export function ServiceOrderDetailPage() {
             </div>
           </div>
 
-          <div className="space-y-5 p-7">
+          <div className="print-body space-y-5 p-7">
             <div className="grid gap-3 md:grid-cols-4">
               <PrintInfoCard title="Estado" value={<ServiceOrderStatusBadge status={order.status} />} />
               <PrintInfoCard title="Asesor" value={order.assignedAdvisor?.displayName ?? 'Sin asesor'} />
@@ -427,7 +430,7 @@ export function ServiceOrderDetailPage() {
               </p>
             </div>
 
-            <div className="grid gap-10 pt-10 md:grid-cols-2">
+            <div className="print-signatures grid gap-10 pt-10 md:grid-cols-2">
               <div className="border-t-2 border-slate-800 pt-3 text-center">
                 <p className="font-bold text-slate-900">{order.customerSignatureName || order.customer.displayName}</p>
                 <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">Firma cliente</p>
