@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { CheckCircle2, ClipboardCheck, Download, Edit, FileText, Image as ImageIcon, Paperclip, Printer, RefreshCcw, ShieldAlert, Stethoscope, Trash2, Upload } from 'lucide-react';
+import { CheckCircle2, ClipboardCheck, Calculator, Download, Edit, FileText, Image as ImageIcon, Paperclip, Printer, RefreshCcw, ShieldAlert, Stethoscope, Trash2, Upload } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '../../../components/common/ConfirmDialog';
@@ -22,6 +22,9 @@ import { ServiceOrderStatusBadge } from '../components/service-order-status-badg
 import { ServiceOrderStatusDialog } from '../components/service-order-status-dialog';
 import { useChangeServiceOrderStatus, useDeleteServiceOrder, useServiceOrder, useUploadServiceOrderPhoto } from '../hooks/use-service-orders';
 import type { ServiceOrder, ServiceOrderStatus } from '../types/service-order.types';
+import { useQuotationsByServiceOrder } from '../../quotations/hooks/use-quotations';
+import { QuotationStatusBadge } from '../../quotations/components/quotation-status-badge';
+import { formatCurrency as formatQuotationCurrency } from '../../quotations/components/quotation-helpers';
 import { useEffect, useState } from 'react';
 
 const progressSteps: Array<{ status: ServiceOrderStatus; label: string }> = [
@@ -117,6 +120,7 @@ export function ServiceOrderDetailPage() {
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const orderQuery = useServiceOrder(id ?? '');
   const diagnosticQuery = useServiceDiagnosticByOrder(id ?? '');
+  const quotationsQuery = useQuotationsByServiceOrder(id ?? '', { page: 1, limit: 10 });
   const changeStatusMutation = useChangeServiceOrderStatus();
   const deleteMutation = useDeleteServiceOrder();
   const uploadPhotoMutation = useUploadServiceOrderPhoto();
@@ -241,6 +245,67 @@ export function ServiceOrderDetailPage() {
                 </p>
               </div>
             </div>
+          </div>
+        )}
+      </section>
+
+      {/* Quotations Section */}
+      <section className="rounded-lg border border-border bg-card p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-base font-semibold">
+              <Calculator className="h-5 w-5 text-primary" />
+              Cotizaciones
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Cotizaciones asociadas a esta orden de servicio.
+            </p>
+          </div>
+          {hasPermission('quotations.create') && canModify && (
+            <Button>
+              <Link to={`/service-orders/${order.id}/quotations/new`}>
+                Crear cotización
+              </Link>
+            </Button>
+          )}
+        </div>
+
+        {quotationsQuery.isLoading ? (
+          <div className="mt-4 rounded-lg border border-border bg-background p-4 text-sm text-muted-foreground">Consultando cotizaciones...</div>
+        ) : quotationsQuery.data && quotationsQuery.data.items.length > 0 ? (
+          <div className="mt-4 overflow-x-auto rounded-md border border-border">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-muted text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Cotización</th>
+                  <th className="px-3 py-2 font-medium">Fecha</th>
+                  <th className="px-3 py-2 font-medium">Estado</th>
+                  <th className="px-3 py-2 font-medium">Vigencia</th>
+                  <th className="px-3 py-2 text-right font-medium">Total</th>
+                  <th className="px-3 py-2 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {quotationsQuery.data.items.map((q) => (
+                  <tr key={q.id} className="border-t border-border">
+                    <td className="px-3 py-2 font-semibold">{q.quotationNumber}</td>
+                    <td className="px-3 py-2">{new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium' }).format(new Date(q.createdAt))}</td>
+                    <td className="px-3 py-2"><QuotationStatusBadge status={q.status} /></td>
+                    <td className="px-3 py-2">{q.validUntil ? new Intl.DateTimeFormat('es-EC', { dateStyle: 'medium' }).format(new Date(q.validUntil)) : '—'}</td>
+                    <td className="px-3 py-2 text-right font-medium">{formatQuotationCurrency(q.total)}</td>
+                    <td className="px-3 py-2">
+                      <Link to={`/quotations/${q.id}`}>
+                        <Button variant="ghost">Ver</Button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="mt-4 rounded-md border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
+            Esta orden no tiene cotizaciones.
           </div>
         )}
       </section>

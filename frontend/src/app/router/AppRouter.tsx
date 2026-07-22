@@ -12,6 +12,7 @@ import { ProfilePage } from '../../features/profile/pages/ProfilePage';
 import { RolesPage } from '../../features/roles/pages/RolesPage';
 import { CreateDiagnosticPage, DiagnosticDetailPage, EditDiagnosticPage } from '../../features/service-diagnostics';
 import { CreateServiceOrderPage, EditServiceOrderPage, ServiceOrderDetailPage, ServiceOrdersPage } from '../../features/service-orders';
+import { CreateQuotationPage, EditQuotationPage, QuotationDetailPage, QuotationsPage } from '../../features/quotations';
 import { SettingsPage } from '../../features/settings/pages/SettingsPage';
 import { UsersPage } from '../../features/users/pages/UsersPage';
 import { CreateVehiclePage, EditVehiclePage, VehiclesPage } from '../../features/vehicles';
@@ -74,6 +75,17 @@ export function AppRouter() {
           </Route>
           <Route element={<ProtectedRoute permission="service-orders.update" />}>
             <Route path="/service-orders/:id/edit" element={<EditServiceOrderPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="quotations.read" />}>
+            <Route path="/quotations" element={<QuotationsPage />} />
+            <Route path="/quotations/:id" element={<QuotationDetailPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="quotations.create" />}>
+            <Route path="/quotations/new" element={<CreateQuotationPage />} />
+            <Route path="/service-orders/:serviceOrderId/quotations/new" element={<CreateQuotationPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="quotations.update" />}>
+            <Route path="/quotations/:id/edit" element={<EditQuotationPage />} />
           </Route>
           <Route element={<ProtectedRoute permission="roles.read" />}>
             <Route path="/roles" element={<RolesPage />} />

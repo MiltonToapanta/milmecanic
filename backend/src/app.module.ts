@@ -10,8 +10,9 @@ import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { HealthModule } from './modules/health/health.module';
 import { RolesModule } from './modules/roles/roles.module';
-import { ServiceDiagnosticsModule } from './modules/service-diagnostics/service-diagnostics.module';
 import { ServiceOrdersModule } from './modules/service-orders/service-orders.module';
+import { QuotationsModule } from './modules/quotations/quotations.module';
+import { ServiceDiagnosticsModule } from './modules/service-diagnostics/service-diagnostics.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { UsersModule } from './modules/users/users.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
@@ -27,6 +28,7 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
     VehiclesModule,
     AppointmentsModule,
     ServiceOrdersModule,
+    QuotationsModule,
     ServiceDiagnosticsModule,
     RolesModule,
     SettingsModule,

@@ -45,7 +45,15 @@ const permissions = [
   ['roles.read', 'Ver roles y permisos', 'roles'],
   ['settings.read', 'Ver configuración del taller', 'settings'],
   ['settings.update', 'Actualizar configuración del taller', 'settings'],
-  ['audit.read', 'Ver auditoría', 'audit']
+  ['audit.read', 'Ver auditoría', 'audit'],
+  ['quotations.read', 'Ver cotizaciones', 'quotations'],
+  ['quotations.create', 'Crear cotizaciones', 'quotations'],
+  ['quotations.update', 'Actualizar cotizaciones', 'quotations'],
+  ['quotations.send', 'Enviar cotizaciones', 'quotations'],
+  ['quotations.approve', 'Aprobar cotizaciones', 'quotations'],
+  ['quotations.reject', 'Rechazar cotizaciones', 'quotations'],
+  ['quotations.cancel', 'Cancelar cotizaciones', 'quotations'],
+  ['quotations.delete', 'Eliminar cotizaciones', 'quotations']
 ] as const;
 
 const developmentUsers = [
@@ -212,7 +220,14 @@ async function main(): Promise<void> {
     'service-diagnostics.read',
     'service-diagnostics.create',
     'service-diagnostics.update',
-    'service-diagnostics.complete'
+    'service-diagnostics.complete',
+    'quotations.read',
+    'quotations.create',
+    'quotations.update',
+    'quotations.send',
+    'quotations.approve',
+    'quotations.reject',
+    'quotations.cancel'
   ];
   const serviceAdvisorPermissions = await prisma.permission.findMany({ where: { code: { in: serviceAdvisorPermissionCodes } } });
   for (const permission of serviceAdvisorPermissions) {
@@ -239,7 +254,8 @@ async function main(): Promise<void> {
     'service-diagnostics.read',
     'service-diagnostics.create',
     'service-diagnostics.update',
-    'service-diagnostics.complete'
+    'service-diagnostics.complete',
+    'quotations.read'
   ];
   const mechanicPermissions = await prisma.permission.findMany({ where: { code: { in: mechanicPermissionCodes } } });
   for (const permission of mechanicPermissions) {
