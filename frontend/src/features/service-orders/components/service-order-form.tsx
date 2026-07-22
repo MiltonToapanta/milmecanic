@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
-import { CarFront, ClipboardList, Gauge, Save, UserRound, Wrench } from 'lucide-react';
+import { CarFront, ClipboardList, Gauge, ListChecks, Save, UserRound, Wrench } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FormField } from '../../../components/forms/FormField';
@@ -45,6 +45,18 @@ const defaultValues: ServiceOrderSchemaInput = {
   estimatedDeliveryDate: '',
   estimatedDeliveryTime: ''
 };
+
+const quickTexts = {
+  exteriorGood: 'Exterior recibido sin golpes visibles mayores. Pintura y carrocería en condición normal según inspección visual.',
+  exteriorReview: 'Registrar detalle: rayones, golpes, abolladuras, piezas flojas, vidrios, retrovisores, luces exteriores y estado de pintura.',
+  interiorGood: 'Interior recibido en condición normal. Tablero, asientos, mandos y tapicería sin novedades visibles mayores.',
+  interiorReview: 'Registrar detalle: tapicería, tablero, radio/pantalla, alfombras, objetos personales visibles, olores, testigos encendidos y mandos interiores.',
+  accessoriesBasic: 'Llave principal, control remoto, matrícula/documentos entregados por el cliente. Confirmar gata, herramientas, triángulos y llanta de emergencia si aplica.',
+  requestMaintenance: 'Cliente solicita mantenimiento preventivo general: revisión de aceite, filtros, frenos, suspensión, luces, niveles y condición general antes de uso.',
+  requestNoise: 'Cliente reporta ruido/vibración durante la conducción. Solicita revisión, diagnóstico y cotización antes de realizar reparaciones.',
+  diagnosisPending: 'Unidad recibida para inspección. Diagnóstico técnico pendiente de revisión detallada por el taller.',
+  internalChecklist: 'Validar: prueba de ruta si aplica, escaneo, evidencia fotográfica, repuestos requeridos, aprobación del cliente y fecha estimada de entrega.'
+} as const;
 
 function toDateInput(value?: string | null): string {
   if (!value) return '';
@@ -103,6 +115,23 @@ function combineOptionalDateTime(date: string, time: string): string | undefined
 function emptyToUndefined(value?: string): string | undefined {
   const normalized = value?.trim();
   return normalized ? normalized : undefined;
+}
+
+function appendText(current: string | undefined, text: string): string {
+  const normalized = current?.trim();
+  return normalized ? `${normalized}\n${text}` : text;
+}
+
+function QuickFillButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className="rounded-md border border-border bg-muted px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition hover:border-primary hover:text-primary"
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  );
 }
 
 function toPayload(values: ServiceOrderSchemaValues): ServiceOrderPayload {
@@ -196,6 +225,19 @@ export function ServiceOrderForm({ serviceOrder, initialCustomerId, initialVehic
 
   return (
     <form className="space-y-6" onSubmit={(event) => void submit(event)}>
+      <section className="mm-automotive-band">
+        <div className="flex items-start gap-3">
+          <ListChecks className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <div>
+            <h2 className="text-sm font-semibold">Cómo llenar una orden completa</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Registre primero cliente, vehículo y kilometraje. Luego detalle qué pide el cliente, cómo llega el vehículo, accesorios recibidos,
+              responsables y nombres para firma. Use los botones de ayuda para cargar textos base y edítelos según el caso real.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="mm-form-section">
         <div className="mm-section-header">
           <div className="mm-section-icon"><CarFront className="h-5 w-5" /></div>
@@ -240,12 +282,23 @@ export function ServiceOrderForm({ serviceOrder, initialCustomerId, initialVehic
         <div className="grid gap-4 lg:grid-cols-3">
           <FormField label="Condición exterior" error={form.formState.errors.exteriorCondition?.message} helper="Ejemplo: rayón en puerta derecha, golpe en parachoques.">
             <textarea className="mm-textarea" {...form.register('exteriorCondition')} />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <QuickFillButton label="Sin novedad visible" onClick={() => form.setValue('exteriorCondition', quickTexts.exteriorGood, { shouldDirty: true, shouldValidate: true })} />
+              <QuickFillButton label="Guía de revisión" onClick={() => form.setValue('exteriorCondition', appendText(form.getValues('exteriorCondition'), quickTexts.exteriorReview), { shouldDirty: true, shouldValidate: true })} />
+            </div>
           </FormField>
           <FormField label="Condición interior" error={form.formState.errors.interiorCondition?.message} helper="Ejemplo: tapicería, tablero, objetos visibles.">
             <textarea className="mm-textarea" {...form.register('interiorCondition')} />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <QuickFillButton label="Sin novedad visible" onClick={() => form.setValue('interiorCondition', quickTexts.interiorGood, { shouldDirty: true, shouldValidate: true })} />
+              <QuickFillButton label="Guía de revisión" onClick={() => form.setValue('interiorCondition', appendText(form.getValues('interiorCondition'), quickTexts.interiorReview), { shouldDirty: true, shouldValidate: true })} />
+            </div>
           </FormField>
           <FormField label="Accesorios recibidos" error={form.formState.errors.receivedAccessories?.message} helper="Ejemplo: llave, control, gata, triángulos, radio.">
             <textarea className="mm-textarea" {...form.register('receivedAccessories')} />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <QuickFillButton label="Accesorios comunes" onClick={() => form.setValue('receivedAccessories', quickTexts.accessoriesBasic, { shouldDirty: true, shouldValidate: true })} />
+            </div>
           </FormField>
         </div>
       </section>
@@ -312,12 +365,22 @@ export function ServiceOrderForm({ serviceOrder, initialCustomerId, initialVehic
         <div className="grid gap-4 lg:grid-cols-2">
           <FormField label="Solicitud del cliente" error={form.formState.errors.customerRequest?.message} helper="Ejemplo: ruido al frenar, mantenimiento preventivo, revisión de motor.">
             <textarea className="mm-textarea" {...form.register('customerRequest')} />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <QuickFillButton label="Mantenimiento general" onClick={() => form.setValue('customerRequest', quickTexts.requestMaintenance, { shouldDirty: true, shouldValidate: true })} />
+              <QuickFillButton label="Ruido o vibración" onClick={() => form.setValue('customerRequest', quickTexts.requestNoise, { shouldDirty: true, shouldValidate: true })} />
+            </div>
           </FormField>
           <FormField label="Diagnóstico inicial" error={form.formState.errors.initialDiagnosis?.message} helper="Opcional. Primera observación al recibir el vehículo.">
             <textarea className="mm-textarea" {...form.register('initialDiagnosis')} />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <QuickFillButton label="Pendiente de revisión" onClick={() => form.setValue('initialDiagnosis', quickTexts.diagnosisPending, { shouldDirty: true, shouldValidate: true })} />
+            </div>
           </FormField>
           <FormField label="Notas internas" error={form.formState.errors.internalNotes?.message} helper="Opcional. Información visible solo para el equipo del taller.">
             <textarea className="mm-textarea" {...form.register('internalNotes')} />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <QuickFillButton label="Checklist interno" onClick={() => form.setValue('internalNotes', appendText(form.getValues('internalNotes'), quickTexts.internalChecklist), { shouldDirty: true, shouldValidate: true })} />
+            </div>
           </FormField>
         </div>
       </section>

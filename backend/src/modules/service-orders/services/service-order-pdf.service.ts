@@ -247,19 +247,26 @@ export class ServiceOrderPdfService {
   }
 
   private drawAuthorization(doc: PDFKit.PDFDocument): void {
-    this.ensureSpace(doc, 72);
-    const text =
-      'El cliente autoriza la recepción del vehículo para inspección y diagnóstico inicial. Cualquier reparación, repuesto o trabajo adicional deberá ser informado y aprobado antes de su ejecución. El taller registra las condiciones visibles indicadas en esta orden.';
+    this.ensureSpace(doc, 118);
+    const clauses = [
+      'El cliente autoriza la recepción del vehículo para inspección, diagnóstico inicial y pruebas necesarias dentro del taller.',
+      'Ninguna reparación, repuesto o trabajo adicional debe ejecutarse sin aprobación previa del cliente o responsable autorizado.',
+      'La condición exterior, interior, accesorios y adjuntos se registran según inspección visual al momento de recepción.',
+      'El cliente declara haber retirado objetos personales de valor o haberlos informado expresamente al asesor.',
+      'Las fechas de entrega son estimadas y pueden variar por diagnóstico, disponibilidad de repuestos o aprobación pendiente.',
+      'Las fotografías y observaciones forman parte del respaldo de recepción, diagnóstico y seguimiento de la orden.'
+    ];
     const y = doc.y;
-    const textHeight = doc.font(fontRegular).fontSize(8).heightOfString(text, { width: 495, lineGap: 2 });
-    const height = Math.max(64, textHeight + 38);
+    const text = clauses.map((clause, index) => `${index + 1}. ${clause}`).join('\n');
+    const textHeight = doc.font(fontRegular).fontSize(7.4).heightOfString(text, { width: 495, lineGap: 1.5 });
+    const height = Math.max(96, textHeight + 42);
     doc.roundedRect(36, y, 523, height, 7).fillAndStroke(soft, line);
-    doc.fillColor(ink).font(fontBold).fontSize(8).text('CONSTANCIA Y AUTORIZACIÓN', 50, y + 10);
+    doc.fillColor(ink).font(fontBold).fontSize(8).text('CLÁUSULAS CLAVE Y AUTORIZACIÓN', 50, y + 10);
     doc.fillColor(muted).font(fontRegular).fontSize(8).text(
       text,
       50,
       y + 27,
-      { width: 495, lineGap: 2 }
+      { width: 495, lineGap: 1.5 }
     );
     doc.y = y + height + 16;
   }
