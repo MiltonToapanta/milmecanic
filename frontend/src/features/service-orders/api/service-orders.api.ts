@@ -48,6 +48,11 @@ export async function getServiceOrder(id: string): Promise<ServiceOrder> {
   return data.data;
 }
 
+export async function downloadServiceOrderPdf(id: string): Promise<Blob> {
+  const { data } = await apiClient.get<Blob>(`/service-orders/${id}/pdf`, { responseType: 'blob' });
+  return data;
+}
+
 export async function createServiceOrder(payload: ServiceOrderPayload): Promise<ServiceOrder> {
   const { data } = await apiClient.post<ApiResponse<ServiceOrder>>('/service-orders', payload);
   return data.data;

@@ -12,6 +12,7 @@ import { ChangeServiceOrderStatusDto } from '../dto/change-service-order-status.
 import { CreateServiceOrderDto } from '../dto/create-service-order.dto';
 import { ServiceOrderQueryDto } from '../dto/service-order-query.dto';
 import { UpdateServiceOrderDto } from '../dto/update-service-order.dto';
+import { ServiceOrderPdfService } from '../services/service-order-pdf.service';
 import { ServiceOrdersService } from '../services/service-orders.service';
 import { UploadedServiceOrderFile } from '../services/service-orders.service';
 
@@ -20,7 +21,10 @@ import { UploadedServiceOrderFile } from '../services/service-orders.service';
 @Controller()
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class ServiceOrdersController {
-  constructor(private readonly serviceOrdersService: ServiceOrdersService) {}
+  constructor(
+    private readonly serviceOrdersService: ServiceOrdersService,
+    private readonly serviceOrderPdfService: ServiceOrderPdfService
+  ) {}
 
   @Post('service-orders')
   @Permissions('service-orders.create')
@@ -38,6 +42,16 @@ export class ServiceOrdersController {
   @Permissions('service-orders.read')
   async findById(@Param('id') id: string) {
     return { data: await this.serviceOrdersService.findById(id) };
+  }
+
+  @Get('service-orders/:id/pdf')
+  @Permissions('service-orders.read')
+  async downloadPdf(@Param('id') id: string, @Res() response: Response) {
+    const pdf = await this.serviceOrderPdfService.generate(id);
+    response.setHeader('Content-Type', 'application/pdf');
+    response.setHeader('Content-Disposition', `attachment; filename="orden-${id}.pdf"`);
+    response.setHeader('Content-Length', pdf.length);
+    return response.send(pdf);
   }
 
   @Patch('service-orders/:id')

@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { CheckCircle2, ClipboardCheck, Edit, FileText, Image as ImageIcon, Paperclip, Printer, RefreshCcw, ShieldAlert, Stethoscope, Trash2, Upload } from 'lucide-react';
+import { CheckCircle2, ClipboardCheck, Download, Edit, FileText, Image as ImageIcon, Paperclip, Printer, RefreshCcw, ShieldAlert, Stethoscope, Trash2, Upload } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '../../../components/common/ConfirmDialog';
@@ -17,6 +17,7 @@ import { useServiceDiagnosticByOrder } from '../../service-diagnostics/hooks/use
 import type { ServiceDiagnostic } from '../../service-diagnostics/types/service-diagnostic.types';
 import { categoryLabels, severityLabels, statusLabels } from '../../service-diagnostics/schemas/service-diagnostic.schema';
 import { getDiagnosticSummary } from '../../service-diagnostics/utils/diagnostic-summary';
+import { downloadServiceOrderPdf } from '../api/service-orders.api';
 import { ServiceOrderStatusBadge } from '../components/service-order-status-badge';
 import { ServiceOrderStatusDialog } from '../components/service-order-status-dialog';
 import { useChangeServiceOrderStatus, useDeleteServiceOrder, useServiceOrder, useUploadServiceOrderPhoto } from '../hooks/use-service-orders';
@@ -135,6 +136,21 @@ export function ServiceOrderDetailPage() {
     }
   };
 
+  const handleDownloadPdf = () => {
+    if (!order) return;
+    void runAction(async () => {
+      const blob = await downloadServiceOrderPdf(order.id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${order.orderNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }, 'PDF de la orden generado');
+  };
+
   if (orderQuery.isLoading) return <LoadingState />;
   if (orderQuery.isError) return <ErrorState message={getErrorMessage(orderQuery.error)} />;
   if (!order) return <ErrorState message="Orden no encontrada" />;
@@ -154,7 +170,8 @@ export function ServiceOrderDetailPage() {
             {hasPermission('service-orders.change-status') && canModify ? (
               <Button variant="secondary" onClick={() => setStatusDialogOpen(true)}><RefreshCcw className="h-4 w-4" />Cambiar estado</Button>
             ) : null}
-            <Button variant="secondary" onClick={() => window.print()}><Printer className="h-4 w-4" />Imprimir orden</Button>
+            <Button onClick={handleDownloadPdf}><Download className="h-4 w-4" />PDF</Button>
+            <Button variant="secondary" onClick={() => window.print()}><Printer className="h-4 w-4" />Imprimir</Button>
             {hasPermission('service-orders.delete') ? (
               <Button variant="danger" onClick={() => setDeleteOpen(true)}><Trash2 className="h-4 w-4" />Eliminar</Button>
             ) : null}
