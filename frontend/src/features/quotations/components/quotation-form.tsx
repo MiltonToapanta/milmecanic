@@ -1,26 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { FormField } from '../../../components/forms/FormField';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
+import { useAuthStore } from '../../auth/store/auth.store';
 import { getServiceOrders } from '../../service-orders/api/service-orders.api';
 import type { ServiceOrder } from '../../service-orders/types/service-order.types';
 import { createQuotationSchema, type CreateQuotationSchemaInput } from '../schemas/quotation.schema';
 import type { CreateQuotationItemInput, CreateQuotationPayload, Quotation } from '../types/quotation.types';
-
-// Helper type for items from form
-interface FormQuotationItem {
-  itemType: 'LABOR' | 'PART' | 'SUPPLY' | 'OTHER';
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  discount: number;
-  taxRate: number;
-}
-import { formatCurrency } from './quotation-helpers';
 import { QuotationItemForm } from './quotation-item-form';
 import { QuotationItemsTable } from './quotation-items-table';
 import { QuotationSummary } from './quotation-summary';
@@ -67,9 +57,12 @@ export function QuotationForm({ quotation, initialServiceOrderId, isSubmitting, 
     }
   });
 
+  const accessToken = useAuthStore((state) => state.accessToken);
+
   const serviceOrdersQuery = useQuery({
     queryKey: ['quotations-form-service-orders'],
-    queryFn: () => getServiceOrders({ page: 1, limit: 200 })
+    queryFn: () => getServiceOrders({ page: 1, limit: 200 }),
+    enabled: !!accessToken
   });
 
   const availableOrders = (serviceOrdersQuery.data?.items ?? []).filter(
