@@ -53,7 +53,15 @@ const permissions = [
   ['quotations.approve', 'Aprobar cotizaciones', 'quotations'],
   ['quotations.reject', 'Rechazar cotizaciones', 'quotations'],
   ['quotations.cancel', 'Cancelar cotizaciones', 'quotations'],
-  ['quotations.delete', 'Eliminar cotizaciones', 'quotations']
+  ['quotations.delete', 'Eliminar cotizaciones', 'quotations'],
+  ['inventory.read', 'Ver inventario', 'inventory'],
+  ['inventory.products.create', 'Crear productos de inventario', 'inventory'],
+  ['inventory.products.update', 'Actualizar productos de inventario', 'inventory'],
+  ['inventory.products.delete', 'Eliminar productos de inventario', 'inventory'],
+  ['inventory.categories.manage', 'Administrar categorías de inventario', 'inventory'],
+  ['inventory.warehouses.manage', 'Administrar bodegas', 'inventory'],
+  ['inventory.movements.create', 'Crear movimientos de stock', 'inventory'],
+  ['inventory.kardex.read', 'Ver kardex', 'inventory']
 ] as const;
 
 const developmentUsers = [
@@ -227,7 +235,9 @@ async function main(): Promise<void> {
     'quotations.send',
     'quotations.approve',
     'quotations.reject',
-    'quotations.cancel'
+    'quotations.cancel',
+    'inventory.read',
+    'inventory.kardex.read'
   ];
   const serviceAdvisorPermissions = await prisma.permission.findMany({ where: { code: { in: serviceAdvisorPermissionCodes } } });
   for (const permission of serviceAdvisorPermissions) {
@@ -255,7 +265,8 @@ async function main(): Promise<void> {
     'service-diagnostics.create',
     'service-diagnostics.update',
     'service-diagnostics.complete',
-    'quotations.read'
+    'quotations.read',
+    'inventory.read'
   ];
   const mechanicPermissions = await prisma.permission.findMany({ where: { code: { in: mechanicPermissionCodes } } });
   for (const permission of mechanicPermissions) {
@@ -269,6 +280,32 @@ async function main(): Promise<void> {
       update: {},
       create: {
         roleId: mechanicRole.id,
+        permissionId: permission.id
+      }
+    });
+  }
+
+  const warehouseRole = await prisma.role.findUniqueOrThrow({ where: { name: 'Bodega' } });
+  const warehousePermissionCodes = [
+    'inventory.read',
+    'inventory.products.create',
+    'inventory.products.update',
+    'inventory.categories.manage',
+    'inventory.movements.create',
+    'inventory.kardex.read'
+  ];
+  const warehousePermissions = await prisma.permission.findMany({ where: { code: { in: warehousePermissionCodes } } });
+  for (const permission of warehousePermissions) {
+    await prisma.rolePermission.upsert({
+      where: {
+        roleId_permissionId: {
+          roleId: warehouseRole.id,
+          permissionId: permission.id
+        }
+      },
+      update: {},
+      create: {
+        roleId: warehouseRole.id,
         permissionId: permission.id
       }
     });
@@ -332,6 +369,22 @@ async function main(): Promise<void> {
       }
     });
   }
+
+  await prisma.warehouse.upsert({
+    where: { code: 'MAIN' },
+    update: {
+      name: 'Bodega principal',
+      isMain: true,
+      isActive: true,
+      deletedAt: null
+    },
+    create: {
+      code: 'MAIN',
+      name: 'Bodega principal',
+      isMain: true,
+      isActive: true
+    }
+  });
 
   const adminUser = await prisma.user.findUniqueOrThrow({ where: { email: 'super@milmecanic.local' } });
   const advisorUser = await prisma.user.findUniqueOrThrow({ where: { email: 'asesor@milmecanic.local' } });
