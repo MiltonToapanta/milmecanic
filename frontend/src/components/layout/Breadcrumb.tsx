@@ -10,7 +10,14 @@ const labels: Record<string, string> = {
   roles: 'Roles y permisos',
   settings: 'Configuración',
   audit: 'Auditoría',
-  profile: 'Perfil'
+  profile: 'Perfil',
+  inventory: 'Inventario',
+  products: 'Productos',
+  stock: 'Stock',
+  movements: 'Movimientos',
+  categories: 'Categorías',
+  warehouses: 'Bodegas',
+  kardex: 'Kardex'
 };
 
 export function Breadcrumb() {

@@ -1,4 +1,4 @@
-import { BarChart3, Calculator, CalendarDays, Car, ClipboardList, FileText, Gauge, Settings, ShieldCheck, UserRound, Users } from 'lucide-react';
+import { BarChart3, Calculator, CalendarDays, Car, ClipboardList, FileText, Gauge, PackageSearch, Settings, ShieldCheck, UserRound, Users } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { PermissionGuard } from '../common/PermissionGuard';
@@ -11,6 +11,19 @@ const items = [
   { to: '/appointments', label: 'Citas', icon: CalendarDays, permission: 'appointments.read' },
   { to: '/service-orders', label: 'Órdenes de servicio', icon: FileText, permission: 'service-orders.read' },
   { to: '/quotations', label: 'Cotizaciones', icon: Calculator, permission: 'quotations.read' },
+  {
+    to: '/inventory/products',
+    label: 'Inventario',
+    icon: PackageSearch,
+    permission: 'inventory.read',
+    children: [
+      { to: '/inventory/products', label: 'Productos', permission: 'inventory.read' },
+      { to: '/inventory/stock', label: 'Stock', permission: 'inventory.read' },
+      { to: '/inventory/movements', label: 'Movimientos', permission: 'inventory.read' },
+      { to: '/inventory/categories', label: 'Categorías', permission: 'inventory.categories.manage' },
+      { to: '/inventory/warehouses', label: 'Bodegas', permission: 'inventory.warehouses.manage' }
+    ]
+  },
   { to: '/roles', label: 'Roles y permisos', icon: ShieldCheck, permission: 'roles.read' },
   { to: '/settings', label: 'Configuración', icon: Settings, permission: 'settings.read' },
   { to: '/audit', label: 'Auditoría', icon: ClipboardList, permission: 'audit.read' }
@@ -35,6 +48,17 @@ export function Sidebar() {
               <item.icon className="h-4 w-4" />
               {item.label}
             </NavLink>
+            {'children' in item ? (
+              <div className="ml-7 mt-1 space-y-1">
+                {item.children?.map((child) => (
+                  <PermissionGuard key={child.to} permission={child.permission}>
+                    <NavLink to={child.to} className={({ isActive }) => cn('block rounded-md px-3 py-1.5 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground', isActive && 'bg-muted text-primary')}>
+                      {child.label}
+                    </NavLink>
+                  </PermissionGuard>
+                ))}
+              </div>
+            ) : null}
           </PermissionGuard>
         ))}
       </nav>

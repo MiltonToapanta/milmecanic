@@ -13,6 +13,17 @@ import { RolesPage } from '../../features/roles/pages/RolesPage';
 import { CreateDiagnosticPage, DiagnosticDetailPage, EditDiagnosticPage } from '../../features/service-diagnostics';
 import { CreateServiceOrderPage, EditServiceOrderPage, ServiceOrderDetailPage, ServiceOrdersPage } from '../../features/service-orders';
 import { CreateQuotationPage, EditQuotationPage, QuotationDetailPage, QuotationsPage } from '../../features/quotations';
+import {
+  CreateInventoryProductPage,
+  EditInventoryProductPage,
+  InventoryCategoriesPage,
+  InventoryKardexPage,
+  InventoryMovementsPage,
+  InventoryProductDetailPage,
+  InventoryProductsPage,
+  InventoryStockPage,
+  InventoryWarehousesPage
+} from '../../features/inventory';
 import { SettingsPage } from '../../features/settings/pages/SettingsPage';
 import { UsersPage } from '../../features/users/pages/UsersPage';
 import { CreateVehiclePage, EditVehiclePage, VehiclesPage } from '../../features/vehicles';
@@ -86,6 +97,27 @@ export function AppRouter() {
           </Route>
           <Route element={<ProtectedRoute permission="quotations.update" />}>
             <Route path="/quotations/:id/edit" element={<EditQuotationPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="inventory.read" />}>
+            <Route path="/inventory/products" element={<InventoryProductsPage />} />
+            <Route path="/inventory/products/:id" element={<InventoryProductDetailPage />} />
+            <Route path="/inventory/stock" element={<InventoryStockPage />} />
+            <Route path="/inventory/movements" element={<InventoryMovementsPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="inventory.products.create" />}>
+            <Route path="/inventory/products/new" element={<CreateInventoryProductPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="inventory.products.update" />}>
+            <Route path="/inventory/products/:id/edit" element={<EditInventoryProductPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="inventory.categories.manage" />}>
+            <Route path="/inventory/categories" element={<InventoryCategoriesPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="inventory.warehouses.manage" />}>
+            <Route path="/inventory/warehouses" element={<InventoryWarehousesPage />} />
+          </Route>
+          <Route element={<ProtectedRoute permission="inventory.kardex.read" />}>
+            <Route path="/inventory/products/:productId/kardex" element={<InventoryKardexPage />} />
           </Route>
           <Route element={<ProtectedRoute permission="roles.read" />}>
             <Route path="/roles" element={<RolesPage />} />
