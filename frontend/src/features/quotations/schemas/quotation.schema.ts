@@ -20,18 +20,8 @@ export const createQuotationSchema = z.object({
   validUntil: z.string().optional(),
   notes: z.string().optional(),
   discount: z.coerce.number().min(0, 'El descuento no puede ser negativo').default(0),
-  items: z.array(quotationItemSchema).min(1, 'Agregue al menos un ítem')
-}).refine(
-  (data) => {
-    const itemsSubtotal = data.items.reduce((sum, item) => {
-      const base = item.quantity * item.unitPrice;
-      const itemSubtotal = base - item.discount;
-      return sum + itemSubtotal;
-    }, 0);
-    return data.discount <= itemsSubtotal;
-  },
-  { message: 'El descuento general no puede superar el subtotal', path: ['discount'] }
-);
+  items: z.array(quotationItemSchema).default([])
+});
 
 export const updateQuotationSchema = z.object({
   validUntil: z.string().optional().nullable(),
