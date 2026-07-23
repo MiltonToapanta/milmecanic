@@ -6,8 +6,7 @@ import {
   IsOptional,
   IsString,
   Max,
-  Min,
-  ValidateNested
+  Min
 } from 'class-validator';
 import { QuotationItemType } from '@prisma/client';
 

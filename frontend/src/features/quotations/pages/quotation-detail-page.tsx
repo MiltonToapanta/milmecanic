@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { ArrowLeft, Edit, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Edit, ExternalLink, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -9,14 +9,13 @@ import { LoadingState } from '../../../components/feedback/LoadingState';
 import { Button } from '../../../components/ui/button';
 import { useAuthStore } from '../../auth/store/auth.store';
 import { useApproveQuotation, useCancelQuotation, useDeleteQuotation, useQuotation, useRejectQuotation, useSendQuotation, useAddQuotationItem, useUpdateQuotationItem, useDeleteQuotationItem } from '../hooks/use-quotations';
-import type { CreateQuotationItemInput, Quotation } from '../types/quotation.types';
+import type { CreateQuotationItemInput } from '../types/quotation.types';
 import { QuotationActionDialog } from '../components/quotation-action-dialog';
 import { formatCurrency, formatOptionalDate } from '../components/quotation-helpers';
 import { QuotationItemForm } from '../components/quotation-item-form';
 import { QuotationItemsTable } from '../components/quotation-items-table';
 import { QuotationStatusBadge } from '../components/quotation-status-badge';
 import { QuotationSummary } from '../components/quotation-summary';
-import { Plus } from 'lucide-react';
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof AxiosError) {
@@ -51,7 +50,6 @@ export function QuotationDetailPage() {
   const quotation = quotationQuery.data;
   const isDraft = quotation.status === 'DRAFT';
   const isSent = quotation.status === 'SENT';
-  const isApproved = quotation.status === 'APPROVED';
 
   const handleAction = async (rejectionReason?: string) => {
     try {
@@ -77,7 +75,7 @@ export function QuotationDetailPage() {
         case 'delete':
           await deleteMutation.mutateAsync(id!);
           toast.success('Cotización eliminada');
-          navigate('/quotations');
+          void navigate('/quotations');
           return;
       }
       await quotationQuery.refetch();
@@ -123,7 +121,7 @@ export function QuotationDetailPage() {
         title={`Cotización ${quotation.quotationNumber}`}
         action={
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => navigate('/quotations')}>
+            <Button variant="ghost" onClick={() => void navigate('/quotations')}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Volver
             </Button>
             <Link to={`/service-orders/${quotation.serviceOrderId}`}>
@@ -210,13 +208,24 @@ export function QuotationDetailPage() {
         {showItemForm && isDraft && (
           <div className="mb-4">
             <QuotationItemForm
-              onSave={handleAddItem}
+              initial={editingItem ? quotation.items[editingItem.index] : undefined}
+              onSave={(item) => void handleAddItem(item)}
               onCancel={() => { setShowItemForm(false); setEditingItem(null); }}
             />
           </div>
         )}
 
-        <QuotationItemsTable items={quotation.items} readonly />
+        <QuotationItemsTable
+          items={quotation.items}
+          readonly={!isDraft || !hasPermission('quotations.update')}
+          onEdit={(index) => {
+            const item = quotation.items[index];
+            if (!item) return;
+            setEditingItem({ id: item.id, index });
+            setShowItemForm(true);
+          }}
+          onDelete={(index) => void handleDeleteItem(index)}
+        />
 
         <div className="mt-4 max-w-sm">
           <QuotationSummary
@@ -235,7 +244,7 @@ export function QuotationDetailPage() {
           quotationNumber={quotation.quotationNumber}
           total={quotation.total}
           customerName={quotation.serviceOrder.customer.displayName}
-          onConfirm={handleAction}
+          onConfirm={(rejectionReason) => void handleAction(rejectionReason)}
           onCancel={() => setActionType(null)}
         />
       )}

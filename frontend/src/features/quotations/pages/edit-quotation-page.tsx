@@ -35,7 +35,7 @@ export function EditQuotationPage() {
       <div className="space-y-4">
         <PageHeader title="Editar cotización" />
         <p className="text-sm text-muted-foreground">Solo se pueden editar cotizaciones en estado borrador.</p>
-        <Button variant="ghost" onClick={() => navigate(`/quotations/${id}`)}>
+        <Button variant="ghost" onClick={() => void navigate(`/quotations/${id}`)}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Ver cotización
         </Button>
       </div>
@@ -46,7 +46,7 @@ export function EditQuotationPage() {
     try {
       await updateMutation.mutateAsync({ id: id!, payload });
       toast.success('Cotización actualizada');
-      navigate(`/quotations/${id}`);
+      void navigate(`/quotations/${id}`);
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
@@ -57,7 +57,7 @@ export function EditQuotationPage() {
       <PageHeader
         title={`Editar cotización ${quotation.quotationNumber}`}
         action={
-          <Button variant="ghost" onClick={() => navigate(`/quotations/${id}`)}>
+          <Button variant="ghost" onClick={() => void navigate(`/quotations/${id}`)}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Volver
           </Button>
         }
@@ -65,7 +65,7 @@ export function EditQuotationPage() {
       <QuotationForm
         quotation={quotation}
         isSubmitting={updateMutation.isPending}
-        onSubmit={handleSubmit}
+        onSubmit={(payload) => handleSubmit(payload)}
       />
     </div>
   );

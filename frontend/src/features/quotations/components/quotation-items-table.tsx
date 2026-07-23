@@ -1,4 +1,4 @@
-import type { CreateQuotationItemInput, QuotationItem, QuotationItemType } from '../types/quotation.types';
+import type { CreateQuotationItemInput, QuotationItem } from '../types/quotation.types';
 import { formatCurrency, getItemTypeLabel } from './quotation-helpers';
 
 interface QuotationItemsTableProps {
@@ -61,7 +61,7 @@ export function QuotationItemsTable({ items, readonly = false, onEdit, onDelete,
 
             return (
               <tr key={isQuotationItem(item) ? item.id : index} className="border-t border-border">
-                <td className="px-3 py-2">{getItemTypeLabel(item.itemType as QuotationItemType)}</td>
+                <td className="px-3 py-2">{getItemTypeLabel(item.itemType)}</td>
                 <td className="px-3 py-2 max-w-[200px] truncate">{item.description}</td>
                 <td className="px-3 py-2 text-right">{item.quantity}</td>
                 <td className="px-3 py-2 text-right">{formatCurrency(item.unitPrice)}</td>

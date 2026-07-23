@@ -7,16 +7,11 @@ import {
 } from '@nestjs/common';
 import { Prisma, QuotationStatus, ServiceOrderStatus } from '@prisma/client';
 import { AuditService } from '../../audit/services/audit.service';
-import { CreateQuotationDto, QuotationItemDto } from '../dto/create-quotation.dto';
+import { CreateQuotationDto } from '../dto/create-quotation.dto';
 import { CreateQuotationItemDto } from '../dto/quotation-item.dto';
 import { QuotationQueryDto } from '../dto/quotation-query.dto';
 import { UpdateQuotationDto } from '../dto/update-quotation.dto';
 import { QuotationsRepository } from '../repositories/quotations.repository';
-
-const ALLOWED_CREATION_STATUSES: ServiceOrderStatus[] = [
-  ServiceOrderStatus.DIAGNOSIS,
-  ServiceOrderStatus.WAITING_APPROVAL
-];
 
 const FORBIDDEN_ORDER_STATUSES: ServiceOrderStatus[] = [
   ServiceOrderStatus.DELIVERED,
@@ -238,7 +233,7 @@ export class QuotationsService {
       updateData.total = totals.total;
     }
 
-    const quotation = await this.quotationsRepository.update(id, updateData);
+    await this.quotationsRepository.update(id, updateData);
 
     if (dto.items && dto.items.length > 0) {
       for (let i = 0; i < dto.items.length; i++) {

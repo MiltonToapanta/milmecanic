@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as quotationsApi from '../api/quotations.api';
 import type {
   CreateQuotationItemInput,
-  CreateQuotationPayload,
   QuotationQuery,
   UpdateQuotationPayload
 } from '../types/quotation.types';

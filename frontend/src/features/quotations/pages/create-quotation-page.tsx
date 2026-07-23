@@ -24,7 +24,7 @@ export function CreateQuotationPage() {
     try {
       const quotation = await createMutation.mutateAsync(payload);
       toast.success(`Cotización ${quotation.quotationNumber} creada exitosamente`);
-      navigate(`/quotations/${quotation.id}`);
+      void navigate(`/quotations/${quotation.id}`);
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
@@ -36,7 +36,7 @@ export function CreateQuotationPage() {
         title="Nueva cotización"
         description="Cree una cotización para una orden de servicio."
         action={
-          <Button variant="ghost" onClick={() => navigate(-1)}>
+          <Button variant="ghost" onClick={() => void navigate(-1)}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Volver
           </Button>
         }
@@ -44,7 +44,7 @@ export function CreateQuotationPage() {
       <QuotationForm
         initialServiceOrderId={serviceOrderId}
         isSubmitting={createMutation.isPending}
-        onSubmit={handleSubmit}
+        onSubmit={(payload) => handleSubmit(payload)}
       />
     </div>
   );

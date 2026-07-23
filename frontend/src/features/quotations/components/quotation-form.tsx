@@ -9,7 +9,7 @@ import { Input } from '../../../components/ui/input';
 import { useAuthStore } from '../../auth/store/auth.store';
 import { getServiceOrders } from '../../service-orders/api/service-orders.api';
 import type { ServiceOrder } from '../../service-orders/types/service-order.types';
-import { createQuotationSchema, type CreateQuotationSchemaInput } from '../schemas/quotation.schema';
+import { createQuotationSchema, type CreateQuotationSchemaInput, type CreateQuotationSchemaValues } from '../schemas/quotation.schema';
 import type { CreateQuotationItemInput, CreateQuotationPayload, Quotation } from '../types/quotation.types';
 import { QuotationItemForm } from './quotation-item-form';
 import { QuotationItemsTable } from './quotation-items-table';
@@ -27,7 +27,6 @@ const CANNOT_QUOTE_STATUSES = ['DELIVERED', 'CANCELLED'];
 function calcBase(qty: number, price: number): number { return qty * price; }
 function calcSubtotal(base: number, discount: number): number { return base - discount; }
 function calcTax(subtotal: number, rate: number): number { return (subtotal * rate) / 100; }
-function calcTotal(subtotal: number, tax: number): number { return subtotal + tax; }
 
 export function QuotationForm({ quotation, initialServiceOrderId, isSubmitting, onSubmit }: QuotationFormProps) {
   const [showItemForm, setShowItemForm] = useState(false);
@@ -46,7 +45,7 @@ export function QuotationForm({ quotation, initialServiceOrderId, isSubmitting, 
 
   const isEditing = Boolean(quotation);
 
-  const { control, handleSubmit, formState: { errors } } = useForm<CreateQuotationSchemaInput>({
+  const { control, handleSubmit, watch, formState: { errors } } = useForm<CreateQuotationSchemaInput, unknown, CreateQuotationSchemaValues>({
     resolver: zodResolver(createQuotationSchema),
     defaultValues: {
       serviceOrderId: quotation?.serviceOrderId ?? initialServiceOrderId ?? '',
@@ -83,7 +82,8 @@ export function QuotationForm({ quotation, initialServiceOrderId, isSubmitting, 
     return sum + tax;
   }, 0);
 
-  const visualTotal = visualSubtotal - items.reduce((sum, i) => sum + (i.discount ?? 0), 0) + visualTax;
+  const visualGeneralDiscount = Number(watch('discount') ?? 0);
+  const visualTotal = Math.max(0, visualSubtotal - visualGeneralDiscount + visualTax);
 
   const handleCreateItem = (item: CreateQuotationItemInput) => {
     if (editingItemIndex !== null) {
@@ -111,7 +111,7 @@ export function QuotationForm({ quotation, initialServiceOrderId, isSubmitting, 
     setItems([...items, { ...items[index] }]);
   };
 
-  const onFormSubmit = async (data: CreateQuotationSchemaInput) => {
+  const onFormSubmit = async (data: CreateQuotationSchemaValues) => {
     if (items.length === 0) {
       setItemsError('Agregue al menos un ítem');
       return;
@@ -121,7 +121,7 @@ export function QuotationForm({ quotation, initialServiceOrderId, isSubmitting, 
       serviceOrderId: data.serviceOrderId,
       validUntil: data.validUntil || undefined,
       notes: data.notes || undefined,
-      discount: (data.discount as number) ?? 0,
+      discount: data.discount ?? 0,
       items: items.map((item) => ({
         itemType: item.itemType,
         description: item.description,
@@ -135,7 +135,7 @@ export function QuotationForm({ quotation, initialServiceOrderId, isSubmitting, 
   };
 
   return (
-    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
+    <form onSubmit={(event) => void handleSubmit(onFormSubmit)(event)} className="space-y-6">
       {/* Service Order Selection */}
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField label="Orden de servicio" error={errors.serviceOrderId?.message}>
@@ -160,12 +160,12 @@ export function QuotationForm({ quotation, initialServiceOrderId, isSubmitting, 
         </FormField>
 
         <FormField label="Vigencia hasta" error={errors.validUntil?.message}>
-          <Controller name="validUntil" control={control} render={({ field }) => <Input type="date" value={field.value as string ?? ''} onChange={field.onChange} onBlur={field.onBlur} name={field.name} />} />
+          <Controller name="validUntil" control={control} render={({ field }) => <Input type="date" value={field.value ?? ''} onChange={field.onChange} onBlur={field.onBlur} name={field.name} />} />
         </FormField>
       </div>
 
       <FormField label="Notas">
-        <Controller name="notes" control={control} render={({ field }) => <Input value={field.value as string ?? ''} onChange={field.onChange} onBlur={field.onBlur} name={field.name} placeholder="Notas internas de la cotización..." />} />
+        <Controller name="notes" control={control} render={({ field }) => <Input value={field.value ?? ''} onChange={field.onChange} onBlur={field.onBlur} name={field.name} placeholder="Notas internas de la cotización..." />} />
       </FormField>
 
       <FormField label="Descuento general" error={errors.discount?.message}>
@@ -203,7 +203,7 @@ export function QuotationForm({ quotation, initialServiceOrderId, isSubmitting, 
         {items.length > 0 && (
           <QuotationSummary
             subtotal={visualSubtotal}
-            discount={0}
+            discount={visualGeneralDiscount}
             tax={visualTax}
             total={visualTotal}
           />

@@ -1,9 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
-import { Download, Eye, Plus } from 'lucide-react';
+import { Eye, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { EmptyState } from '../../../components/common/EmptyState';
 import { PageHeader } from '../../../components/common/PageHeader';
 import { SearchInput } from '../../../components/common/SearchInput';
@@ -11,9 +9,8 @@ import { ErrorState } from '../../../components/feedback/ErrorState';
 import { LoadingState } from '../../../components/feedback/LoadingState';
 import { Button } from '../../../components/ui/button';
 import { useAuthStore } from '../../auth/store/auth.store';
-import { useDeleteQuotation, useQuotations } from '../hooks/use-quotations';
-import type { Quotation, QuotationStatus, QuotationQuery } from '../types/quotation.types';
-import { QuotationActionDialog } from '../components/quotation-action-dialog';
+import { useQuotations } from '../hooks/use-quotations';
+import type { QuotationStatus, QuotationQuery } from '../types/quotation.types';
 import { formatCurrency, formatOptionalDate } from '../components/quotation-helpers';
 import { QuotationStatusBadge } from '../components/quotation-status-badge';
 
@@ -32,8 +29,6 @@ export function QuotationsPage() {
   const [status, setStatus] = useState<QuotationStatus | ''>('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [actionQuotation, setActionQuotation] = useState<Quotation | null>(null);
-  const [actionType, setActionType] = useState<'send' | 'approve' | 'reject' | 'cancel' | 'delete' | null>(null);
 
   const query: QuotationQuery = {
     page,
@@ -45,7 +40,6 @@ export function QuotationsPage() {
   };
 
   const quotationsQuery = useQuotations(query);
-  const deleteMutation = useDeleteQuotation();
 
   const quotations = quotationsQuery.data?.items ?? [];
   const pagination = quotationsQuery.data?.pagination;
@@ -59,17 +53,6 @@ export function QuotationsPage() {
     { value: 'CANCELLED', label: 'Cancelada' }
   ];
 
-  const handleDelete = async (quotation: Quotation) => {
-    try {
-      await deleteMutation.mutateAsync(quotation.id);
-      toast.success('Cotización eliminada');
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    }
-    setActionQuotation(null);
-    setActionType(null);
-  };
-
   return (
     <div className="space-y-4">
       <PageHeader
@@ -77,7 +60,7 @@ export function QuotationsPage() {
         description="Gestione las cotizaciones del taller."
         action={
           hasPermission('quotations.create') ? (
-            <Button onClick={() => navigate('/quotations/new')}>
+            <Button onClick={() => void navigate('/quotations/new')}>
               <Plus className="mr-2 h-4 w-4" /> Nueva cotización
             </Button>
           ) : undefined

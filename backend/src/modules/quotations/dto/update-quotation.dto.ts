@@ -2,7 +2,6 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsDateString,
-  IsDecimal,
   IsEnum,
   IsNotEmpty,
   IsNumber,
