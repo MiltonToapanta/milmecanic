@@ -61,7 +61,7 @@ export function QuotationForm({ quotation, initialServiceOrderId, isSubmitting, 
 
   const serviceOrdersQuery = useQuery({
     queryKey: ['quotations-form-service-orders'],
-    queryFn: () => getServiceOrders({ page: 1, limit: 200 }),
+    queryFn: () => getServiceOrders({ page: 1, limit: 100 }),
     enabled: !!accessToken
   });
 
